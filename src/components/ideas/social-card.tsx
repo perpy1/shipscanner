@@ -101,7 +101,7 @@ export function SocialCard({
               <span style={{ fontFamily: "'PressStart2P', monospace", fontSize: 10, color: "#f59e0b" }}>Side</span>
               <span style={{ fontFamily: "'PressStart2P', monospace", fontSize: 10, color: "#06b6d4" }}>Quest</span>
             </div>
-            <span style={{ fontSize: 12, color: "#8b8aa0" }}>sidequest.app</span>
+            <span style={{ fontSize: 12, color: "#8b8aa0" }}>sidequest-gray.vercel.app</span>
           </div>
 
           {/* Badges */}
