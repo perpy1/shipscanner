@@ -4,11 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "PressStart2P";
+  src: url("https://fonts.gstatic.com/s/pressstart2p/v15/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-mono);
   --font-mono: var(--font-geist-mono);
+  --font-pixel: "PressStart2P", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -71,7 +80,7 @@
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -83,37 +92,37 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0f0e17;
+  --foreground: #fffffe;
+  --card: #1a1932;
+  --card-foreground: #fffffe;
+  --popover: #1a1932;
+  --popover-foreground: #fffffe;
+  --primary: #f59e0b;
+  --primary-foreground: #0f0e17;
+  --secondary: #242240;
+  --secondary-foreground: #fffffe;
+  --muted: #242240;
+  --muted-foreground: #8b8aa0;
+  --accent: #242240;
+  --accent-foreground: #fffffe;
+  --destructive: #ef4444;
+  --border: #2e2c50;
+  --input: #2e2c50;
+  --ring: #f59e0b;
+  --chart-1: #f59e0b;
+  --chart-2: #06b6d4;
+  --chart-3: #10b981;
+  --chart-4: #8b5cf6;
+  --chart-5: #ec4899;
+  --sidebar: #1a1932;
+  --sidebar-foreground: #fffffe;
+  --sidebar-primary: #f59e0b;
+  --sidebar-primary-foreground: #0f0e17;
+  --sidebar-accent: #242240;
+  --sidebar-accent-foreground: #fffffe;
+  --sidebar-border: #2e2c50;
+  --sidebar-ring: #f59e0b;
 }
 
 @layer base {
@@ -124,6 +133,51 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans scroll-smooth;
   }
 }
+
+/* Pixel heading font */
+.font-pixel {
+  font-family: "PressStart2P", monospace;
+}
+
+/* Gradient text — warm amber to cyan */
+.gradient-text {
+  background: linear-gradient(135deg, #f59e0b, #fb923c, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Scanline overlay for retro CRT feel */
+.scanlines {
+  position: relative;
+}
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+/* Pixel border style */
+.pixel-border {
+  border: 2px solid var(--border);
+  box-shadow:
+    4px 4px 0 0 var(--border);
+}
+
+.pixel-border:hover {
+  box-shadow:
+    4px 4px 0 0 #f59e0b;
+  border-color: #f59e0b;
+}
+
