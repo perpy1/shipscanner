@@ -1,7 +1,6 @@
 import { getTodayIdeas } from "@/lib/queries";
 import { IdeaCard } from "@/components/ideas/idea-card";
 import { SpotlightCard } from "@/components/ideas/spotlight-card";
-import { SubscribeForm } from "@/components/subscribe-form";
 import { HeroTypewriter } from "@/components/hero-typewriter";
 import { Badge } from "@/components/ui/badge";
 import { Swords, Cpu, Scroll, ArrowRight, Sparkles } from "lucide-react";
@@ -41,14 +40,15 @@ export default async function Home() {
             building.
           </p>
 
-          <div
-            id="subscribe"
-            className="mt-10 flex flex-col items-center gap-4"
-          >
-            <SubscribeForm />
-            <p className="text-xs text-muted-foreground/60">
-              Free forever. Fresh ideas every morning. No spam, pinky promise.
-            </p>
+          <div className="mt-10">
+            <Button
+              size="lg"
+              className="bg-amber-500 text-black font-bold hover:bg-amber-400 border-0 text-sm px-8"
+              render={<Link href="/ideas" />}
+            >
+              Browse Quests
+              <ArrowRight className="ml-1.5 size-4" />
+            </Button>
           </div>
         </div>
       </section>
@@ -158,24 +158,6 @@ export default async function Home() {
                 </p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="relative px-4 py-20 sm:px-6">
-        <div className="pointer-events-none absolute bottom-[-200px] left-1/2 -translate-x-1/2 h-[400px] w-[400px] rounded-full bg-amber-500/[0.04] blur-[100px]" />
-        <div className="relative mx-auto max-w-2xl text-center">
-          <h2 className="font-pixel text-lg sm:text-xl leading-relaxed sm:leading-relaxed">
-            <span className="text-muted-foreground">ready to</span>{" "}
-            <span className="gradient-text">level up?</span>
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            Join the party. Fresh quests in your inbox every morning — just open
-            it up and start vibing.
-          </p>
-          <div className="mt-8 flex justify-center">
-            <SubscribeForm />
           </div>
         </div>
       </section>

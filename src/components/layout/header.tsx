@@ -21,7 +21,7 @@ export function Header() {
           <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-amber-400 text-xs" render={<Link href="/categories" />}>
             Classes
           </Button>
-          <Button size="sm" className="bg-amber-500 text-black font-bold hover:bg-amber-400 border-0 text-xs" render={<Link href="#subscribe" />}>
+          <Button size="sm" className="bg-amber-500 text-black font-bold hover:bg-amber-400 border-0 text-xs" render={<Link href="/ideas" />}>
             Start Quest
           </Button>
         </nav>
