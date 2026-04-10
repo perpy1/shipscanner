@@ -1,8 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
-
 export default function Error({
   reset,
 }: {
@@ -10,20 +7,20 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-4 py-20">
-      <div className="flex size-16 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 mb-6">
-        <AlertCircle className="size-8 text-rose-400" />
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-24">
+      <div className="font-display text-[64px] text-[var(--danger)] leading-none mb-4">
+        ERR
       </div>
-      <h1 className="mb-2 text-2xl font-bold">Something went wrong</h1>
-      <p className="mb-8 text-muted-foreground">
+      <p className="text-lg font-medium text-[var(--text-display)] mb-2">Something went wrong</p>
+      <p className="mb-8 text-[var(--text-secondary)]">
         An unexpected error occurred. Please try again.
       </p>
-      <Button
-        className="rounded-full bg-emerald-500 text-black hover:bg-emerald-400 border-0"
+      <button
         onClick={reset}
+        className="font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3.5 rounded-full bg-[var(--copper)] text-[var(--bg)] transition-all duration-200 hover:opacity-85 cursor-pointer"
       >
-        Try Again
-      </Button>
+        Try again
+      </button>
     </div>
   );
 }

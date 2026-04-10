@@ -1,246 +1,250 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Idea } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Flame, ExternalLink, X, Share2, Cpu, Copy, ChevronDown, ChevronUp, Users } from "lucide-react";
-import { SocialCard } from "./social-card";
-import { playClickSound } from "@/lib/sounds";
+import { playClick, playTap } from "@/lib/sounds";
 import { generateClaudePrompt } from "@/lib/generate-prompt";
-import { toast } from "sonner";
 
-const difficultyConfig: Record<string, { label: string; color: string }> = {
-  Weekend: { label: "Weekend Quest", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-  Week: { label: "Week-long Raid", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  Month: { label: "Epic Campaign", color: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
+const difficultyConfig: Record<string, { label: string; cssClass: string }> = {
+  Weekend: { label: "WEEKEND", cssClass: "diff-easy" },
+  Week: { label: "WEEK", cssClass: "diff-mid" },
+  Month: { label: "MONTH", cssClass: "diff-hard" },
 };
 
 const platformLabel: Record<string, string> = {
-  reddit: "Reddit",
-  hackernews: "Hacker News",
-  producthunt: "Product Hunt",
+  reddit: "REDDIT",
+  hackernews: "HN",
+  producthunt: "PH",
 };
 
+/** Prompt modal — shared by cards and spotlight */
+export function PromptModal({
+  idea,
+  open,
+  onClose,
+}: {
+  idea: Idea;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const prompt = generateClaudePrompt(idea);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(prompt).then(() => {
+      playClick(true);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [prompt]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        playTap();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className={`modal-overlay ${open ? "open" : ""}`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          playTap();
+          onClose();
+        }
+      }}
+    >
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        {/* Close button */}
+        <button
+          onClick={() => { playTap(); onClose(); }}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full border border-[var(--glass-border)] bg-transparent text-[var(--text-disabled)] text-base cursor-pointer flex items-center justify-center transition-all duration-200 hover:border-[var(--copper)] hover:text-[var(--copper)]"
+        >
+          &times;
+        </button>
+
+        {/* Eyebrow */}
+        <div className="font-label text-[10px] tracking-[0.1em] uppercase text-[var(--copper)] mb-3 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--copper)]" style={{ animation: "scan-pulse 2s ease-in-out infinite" }} />
+          BUILD WITH CLAUDE
+        </div>
+
+        {/* Name */}
+        <div className="font-display text-4xl font-normal text-[var(--text-display)] tracking-[-0.02em] leading-[1.1] mb-2">
+          {idea.name}
+        </div>
+
+        {/* Liner */}
+        <div className="text-[15px] text-[var(--text-secondary)] leading-relaxed mb-6">
+          {idea.one_liner}
+        </div>
+
+        {/* Prompt */}
+        <div className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)] mb-2">
+          GENERATED PROMPT
+        </div>
+        <div className="prompt-box mb-5">
+          {prompt}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2.5 items-center">
+          <button
+            onClick={handleCopy}
+            className={`font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3 rounded-full border-none cursor-pointer transition-all duration-200 flex items-center gap-2 ${
+              copied
+                ? "bg-[var(--success)] text-[var(--bg)]"
+                : "bg-[var(--copper)] text-[var(--bg)] hover:opacity-85"
+            }`}
+          >
+            {copied ? "COPIED" : "COPY TO CLIPBOARD"}
+          </button>
+          <button
+            onClick={() => { playTap(); onClose(); }}
+            className="font-label text-[10px] tracking-[0.06em] uppercase text-[var(--text-disabled)] bg-transparent border-none cursor-pointer px-4 py-3 transition-colors duration-200 hover:text-[var(--text-secondary)]"
+          >
+            CLOSE
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Glass card with inline expand detail */
 export function IdeaCardModal({ idea }: { idea: Idea }) {
-  const [open, setOpen] = useState(false);
-  const [showShare, setShowShare] = useState(false);
+  const [active, setActive] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
 
   const diff = difficultyConfig[idea.difficulty] || difficultyConfig.Weekend;
 
-  function handleOpen() {
-    playClickSound();
-    setOpen(true);
-  }
+  function toggleCard(e: React.MouseEvent) {
+    // Don't toggle if clicking a button inside
+    if ((e.target as HTMLElement).closest("button")) return;
+    const isOpening = !active;
+    playClick(isOpening);
+    setActive(isOpening);
 
-  function handleCopyPrompt() {
-    const prompt = generateClaudePrompt(idea);
-    navigator.clipboard.writeText(prompt);
-    toast.success("Prompt copied to clipboard!", { className: "font-mono text-xs" });
+    // Toggle has-active on parent grid
+    const grid = (e.currentTarget as HTMLElement).closest(".grid-ideas");
+    if (grid) {
+      if (isOpening) {
+        grid.classList.add("has-active");
+      } else {
+        // Check if any other card is active
+        const otherActives = grid.querySelectorAll(".glass-card.active");
+        if (otherActives.length <= 1) grid.classList.remove("has-active");
+      }
+    }
   }
 
   return (
     <>
-      {/* Card trigger */}
-      <button
-        onClick={handleOpen}
-        className="pixel-border rounded-lg bg-card p-5 text-left transition-all duration-200 hover:translate-y-[-2px] cursor-pointer w-full"
+      <div
+        className={`glass-card ${active ? "active" : ""}`}
+        onClick={toggleCard}
       >
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Badge variant="secondary" className="text-[10px] font-mono">
-              {idea.category}
-            </Badge>
-            <Badge variant="outline" className={`text-[10px] ${diff.color}`}>
-              {diff.label}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-0.5">
+        {/* Top row — difficulty + potential dots */}
+        <div className="flex justify-between items-center mb-4">
+          <span className={`font-label text-[9px] tracking-[0.08em] uppercase px-2.5 py-1 rounded-full border ${diff.cssClass}`}>
+            {diff.label}
+          </span>
+          <div className="flex gap-[3px]">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Flame
+              <div
                 key={i}
-                className={`size-3 ${
-                  i < idea.viral_potential
-                    ? "fill-amber-400 text-amber-400"
-                    : "text-muted-foreground/20"
+                className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
+                  i < idea.viral_potential ? "bg-[var(--copper)]" : "bg-[var(--text-disabled)]"
                 }`}
               />
             ))}
           </div>
         </div>
-        <h3 className="text-base font-bold leading-snug mb-1">{idea.name}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-          {idea.one_liner}
-        </p>
-        <p className="text-[13px] text-muted-foreground/60 leading-relaxed line-clamp-2">
-          {idea.description}
-        </p>
 
-        {/* Footer indicators */}
-        <div className="mt-3 flex items-center gap-2">
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
-            {platformLabel[idea.source_platform]}
-          </Badge>
-          {idea.upvotes > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
-              <Users className="size-3" />
-              {idea.upvotes} interested
-            </span>
-          )}
+        {/* Name */}
+        <div className="card-name text-xl font-medium text-[var(--text-display)] mb-2 leading-snug transition-colors duration-300">
+          {idea.name}
         </div>
-      </button>
 
-      {/* Modal overlay */}
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          onClick={() => setOpen(false)}
-          onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
-        >
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" />
+        {/* Liner */}
+        <div className="text-sm text-[var(--text-secondary)] leading-relaxed mb-5">
+          {idea.one_liner}
+        </div>
 
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative z-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto pixel-border rounded-lg bg-card p-6 sm:p-8 animate-in zoom-in-95 fade-in duration-200"
-          >
-            <button
-              onClick={() => setOpen(false)}
-              aria-label="Close modal"
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="size-5" />
-            </button>
+        {/* Footer */}
+        <div className="flex justify-between items-center pt-4 border-t border-[rgba(255,255,255,0.06)]">
+          <span className="font-label text-[10px] tracking-[0.06em] uppercase text-[var(--text-disabled)]">
+            {platformLabel[idea.source_platform] || idea.source_platform}
+          </span>
+          <div className="card-arrow w-7 h-7 rounded-full border border-[rgba(255,255,255,0.06)] flex items-center justify-center text-[var(--text-disabled)] text-sm transition-all duration-300 cubic-bezier(0.25,0.1,0.25,1)">
+            &rarr;
+          </div>
+        </div>
 
-            {/* Header badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Badge variant="secondary" className="text-xs font-mono">
-                {idea.category}
-              </Badge>
-              <Badge variant="outline" className={`text-xs ${diff.color}`}>
-                {diff.label}
-              </Badge>
-              {idea.upvotes > 0 && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono">
-                  <Users className="size-3.5" />
-                  {idea.upvotes} builders interested
-                </span>
-              )}
-              <div className="flex items-center gap-0.5 ml-auto">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Flame
-                    key={i}
-                    className={`size-4 ${
-                      i < idea.viral_potential
-                        ? "fill-amber-400 text-amber-400"
-                        : "text-muted-foreground/20"
-                    }`}
-                  />
-                ))}
+        {/* Expandable detail */}
+        <div className="card-detail">
+          <div className="pt-5 mt-5 border-t border-[rgba(255,255,255,0.06)]">
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div className="panel-item flex flex-col gap-1">
+                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">PAIN POINT</span>
+                <span className="text-[13px] text-[var(--text-primary)] leading-relaxed">{idea.pain_point}</span>
+              </div>
+              <div className="panel-item flex flex-col gap-1">
+                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">AUDIENCE</span>
+                <span className="text-[13px] text-[var(--text-primary)] leading-relaxed">{idea.target_audience}</span>
+              </div>
+              <div className="panel-item flex flex-col gap-1">
+                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">MONETIZATION</span>
+                <span className="text-[13px] text-[var(--text-primary)] leading-relaxed">{idea.monetization}</span>
+              </div>
+              <div className="panel-item flex flex-col gap-1">
+                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">POTENTIAL</span>
+                <span className="text-[13px] text-[var(--copper)] leading-relaxed">{idea.viral_potential} / 5</span>
               </div>
             </div>
-
-            {/* Title */}
-            <h2 className="font-pixel text-lg sm:text-xl text-amber-400 mb-2 leading-relaxed">
-              {idea.name}
-            </h2>
-            <p className="text-base text-foreground/90 leading-relaxed mb-4">
-              {idea.one_liner}
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              {idea.description}
-            </p>
-
-            {/* Details grid */}
-            <div className="grid gap-3 sm:grid-cols-3 mb-6">
-              <div className="rounded-lg bg-secondary p-4 border border-border/60">
-                <p className="font-pixel text-[8px] text-amber-400 mb-2">PROBLEM</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {idea.pain_point}
-                </p>
-              </div>
-              <div className="rounded-lg bg-secondary p-4 border border-border/60">
-                <p className="font-pixel text-[8px] text-cyan-400 mb-2">WHO NEEDS IT</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {idea.target_audience}
-                </p>
-              </div>
-              <div className="rounded-lg bg-secondary p-4 border border-border/60">
-                <p className="font-pixel text-[8px] text-emerald-400 mb-2">REVENUE</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {idea.monetization}
-                </p>
-              </div>
-            </div>
-
-            {/* Build with Claude */}
-            <div className="mb-6">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-violet-400 border-violet-500/30 hover:bg-violet-500/10"
-                onClick={() => setShowPrompt(!showPrompt)}
+            <div className="panel-actions flex gap-2.5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playTap();
+                  setShowPrompt(true);
+                }}
+                className="font-label text-[10px] tracking-[0.06em] uppercase px-5 py-2.5 rounded-full bg-[var(--copper)] text-[var(--bg)] border-none cursor-pointer transition-all duration-200 hover:opacity-85"
               >
-                <Cpu className="size-4" />
-                Build with Claude
-                {showPrompt ? <ChevronUp className="size-3 ml-auto" /> : <ChevronDown className="size-3 ml-auto" />}
-              </Button>
-              {showPrompt && (
-                <div className="mt-2 relative">
-                  <textarea
-                    readOnly
-                    value={generateClaudePrompt(idea)}
-                    className="w-full rounded-lg bg-secondary border border-border p-3 text-xs font-mono text-muted-foreground leading-relaxed resize-none h-48"
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 text-xs"
-                    onClick={handleCopyPrompt}
-                  >
-                    <Copy className="size-3" />
-                    Copy
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t-2 border-border pt-4">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Badge variant="outline" className="text-xs font-mono">
-                  {platformLabel[idea.source_platform]}
-                </Badge>
+                GENERATE PROMPT
+              </button>
+              {idea.source_urls?.[0] && (
                 <a
                   href={idea.source_urls[0]}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 hover:text-amber-400 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playTap();
+                  }}
+                  className="font-label text-[10px] tracking-[0.06em] uppercase px-5 py-2.5 rounded-full bg-transparent text-[var(--text-primary)] border border-[var(--glass-border)] cursor-pointer transition-all duration-200 hover:border-[rgba(255,255,255,0.15)] inline-flex items-center"
                 >
-                  View source <ExternalLink className="size-3" />
+                  VIEW SOURCE
                 </a>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10"
-                onClick={() => {
-                  setOpen(false);
-                  setShowShare(true);
-                }}
-              >
-                <Share2 className="size-4" />
-                Share
-              </Button>
+              )}
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      <SocialCard idea={idea} open={showShare} onClose={() => setShowShare(false)} />
+      <PromptModal idea={idea} open={showPrompt} onClose={() => setShowPrompt(false)} />
     </>
   );
 }

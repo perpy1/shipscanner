@@ -1,67 +1,76 @@
 "use client";
 
+import { useState } from "react";
 import { Idea } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { Flame, Sparkles } from "lucide-react";
-import { IdeaCardModal } from "./idea-card-modal";
+import { playClick, playTap } from "@/lib/sounds";
+import { PromptModal } from "./idea-card-modal";
+
+const difficultyLabel: Record<string, string> = {
+  Weekend: "Weekend Project",
+  Week: "Week Sprint",
+  Month: "Month Campaign",
+};
 
 export function SpotlightCard({ idea }: { idea: Idea }) {
+  const [showPrompt, setShowPrompt] = useState(false);
+
   return (
-    <div className="relative">
-      {/* Amber glow */}
-      <div className="absolute inset-0 rounded-lg bg-amber-500/10 blur-xl" />
+    <>
+      <div className="spotlight-wrap mx-6 sm:mx-12 mb-16">
+        <div
+          className="bg-[var(--bg)] backdrop-blur-[30px] rounded-[19px] p-8 sm:p-14 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 sm:gap-12 relative z-[1]"
+        >
+          {/* Left content */}
+          <div>
+            <div className="font-label text-[10px] tracking-[0.12em] uppercase text-[var(--copper)] mb-4">
+              IDEA OF THE DAY
+            </div>
+            <h2 className="font-display text-4xl sm:text-5xl font-normal text-[var(--text-display)] tracking-[-0.02em] leading-[1.05] mb-4">
+              {idea.name}
+            </h2>
+            <p className="text-base font-light text-[var(--text-secondary)] leading-relaxed mb-7">
+              {idea.one_liner}. {idea.description}
+            </p>
+            <button
+              onClick={() => {
+                playClick(true);
+                setShowPrompt(true);
+              }}
+              className="inline-flex items-center gap-2.5 font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3.5 rounded-full bg-[var(--copper)] text-[var(--bg)] border-none cursor-pointer transition-all duration-200 hover:opacity-85 hover:translate-x-0.5"
+            >
+              GENERATE BUILD PROMPT <span>&rarr;</span>
+            </button>
+          </div>
 
-      <div className="relative pixel-border rounded-lg bg-card p-6 sm:p-8 border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
-        {/* Editor's Pick badge */}
-        <div className="flex items-center gap-2 mb-4">
-          <Badge className="bg-amber-500 text-black font-pixel text-[9px] border-0">
-            <Sparkles className="size-3 mr-1" />
-            EDITOR&apos;S PICK
-          </Badge>
-          <div className="flex items-center gap-0.5 ml-auto">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Flame
-                key={i}
-                className={`size-4 ${
-                  i < idea.viral_potential
-                    ? "fill-amber-400 text-amber-400"
-                    : "text-muted-foreground/20"
-                }`}
-              />
-            ))}
+          {/* Right details */}
+          <div className="flex flex-col">
+            <div className="flex justify-between items-baseline py-3.5 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="font-label text-[10px] tracking-[0.08em] uppercase text-[var(--text-secondary)]">PAIN POINT</span>
+              <span className="text-sm text-[var(--text-primary)] text-right max-w-[55%]">{idea.pain_point}</span>
+            </div>
+            <div className="flex justify-between items-baseline py-3.5 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="font-label text-[10px] tracking-[0.08em] uppercase text-[var(--text-secondary)]">AUDIENCE</span>
+              <span className="text-sm text-[var(--text-primary)] text-right max-w-[55%]">{idea.target_audience}</span>
+            </div>
+            <div className="flex justify-between items-baseline py-3.5 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="font-label text-[10px] tracking-[0.08em] uppercase text-[var(--text-secondary)]">MONETIZATION</span>
+              <span className="text-sm text-[var(--text-primary)] text-right max-w-[55%]">{idea.monetization}</span>
+            </div>
+            <div className="flex justify-between items-baseline py-3.5 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="font-label text-[10px] tracking-[0.08em] uppercase text-[var(--text-secondary)]">DIFFICULTY</span>
+              <span className="text-sm text-right max-w-[55%]" style={{ color: idea.difficulty === "Month" ? "var(--danger)" : idea.difficulty === "Week" ? "var(--warning)" : "var(--success)" }}>
+                {difficultyLabel[idea.difficulty] || idea.difficulty}
+              </span>
+            </div>
+            <div className="flex justify-between items-baseline py-3.5">
+              <span className="font-label text-[10px] tracking-[0.08em] uppercase text-[var(--text-secondary)]">POTENTIAL</span>
+              <span className="text-sm text-[var(--copper)] text-right">{idea.viral_potential} / 5</span>
+            </div>
           </div>
         </div>
-
-        {/* Idea details inline */}
-        <h3 className="font-pixel text-base sm:text-lg text-amber-400 mb-2 leading-relaxed">
-          {idea.name}
-        </h3>
-        <p className="text-base text-foreground/90 leading-relaxed mb-3">
-          {idea.one_liner}
-        </p>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-          {idea.description}
-        </p>
-
-        {/* Details grid */}
-        <div className="grid gap-3 sm:grid-cols-3 mb-4">
-          <div className="rounded-lg bg-secondary p-3 border border-border/60">
-            <p className="font-pixel text-[7px] text-amber-400 mb-1">THE PROBLEM</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">{idea.pain_point}</p>
-          </div>
-          <div className="rounded-lg bg-secondary p-3 border border-border/60">
-            <p className="font-pixel text-[7px] text-cyan-400 mb-1">WHO NEEDS IT</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">{idea.target_audience}</p>
-          </div>
-          <div className="rounded-lg bg-secondary p-3 border border-border/60">
-            <p className="font-pixel text-[7px] text-emerald-400 mb-1">GOLD POTENTIAL</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">{idea.monetization}</p>
-          </div>
-        </div>
-
-        {/* Click to expand */}
-        <IdeaCardModal idea={idea} />
       </div>
-    </div>
+
+      <PromptModal idea={idea} open={showPrompt} onClose={() => setShowPrompt(false)} />
+    </>
   );
 }

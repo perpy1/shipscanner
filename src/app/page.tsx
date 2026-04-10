@@ -1,166 +1,188 @@
-import { getTodayIdeas } from "@/lib/queries";
+import { getTodayIdeas, getAllIdeas, getAvailableDates } from "@/lib/queries";
 import { IdeaCard } from "@/components/ideas/idea-card";
 import { SpotlightCard } from "@/components/ideas/spotlight-card";
-import { HeroTypewriter } from "@/components/hero-typewriter";
-import { Badge } from "@/components/ui/badge";
-import { Swords, Cpu, Scroll, ArrowRight, Sparkles } from "lucide-react";
+import { MarqueeTicker } from "@/components/layout/marquee-ticker";
+import { ScannerRibbon } from "@/components/scanner-ribbon";
+import { ArchiveSection } from "@/components/archive-section";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export default async function Home() {
   const todayIdeas = await getTodayIdeas();
+  const allIdeas = await getAllIdeas();
+  const dates = await getAvailableDates();
 
-  const sortedByViral = [...todayIdeas].sort((a, b) => b.viral_potential - a.viral_potential);
-  const spotlightIdea = sortedByViral[0] ?? null;
-  const remainingIdeas = spotlightIdea
-    ? todayIdeas.filter((i) => i.id !== spotlightIdea.id)
-    : todayIdeas;
+  // Compute category counts
+  const categoryCounts: Record<string, { count: number; ideas: string[] }> = {};
+  for (const idea of allIdeas) {
+    if (!categoryCounts[idea.category]) {
+      categoryCounts[idea.category] = { count: 0, ideas: [] };
+    }
+    categoryCounts[idea.category].count++;
+    if (categoryCounts[idea.category].ideas.length < 3) {
+      categoryCounts[idea.category].ideas.push(idea.name);
+    }
+  }
+
+  const spotlight = todayIdeas[0];
 
   return (
-    <div className="flex flex-col scanlines">
-      {/* Hero */}
-      <section className="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-32">
-        <div className="pointer-events-none absolute top-[-200px] left-1/2 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-amber-500/[0.06] blur-[120px]" />
-        <div className="pointer-events-none absolute bottom-[-100px] right-[-100px] h-[300px] w-[300px] rounded-full bg-cyan-500/[0.04] blur-[100px]" />
+    <div className="flex flex-col">
+      {/* ── Hero ── */}
+      <section className="text-center px-6 sm:px-12 pt-24 pb-0 flex flex-col items-center">
+        {/* Eyebrow */}
+        <div className="font-label text-[11px] tracking-[0.12em] uppercase text-[var(--copper)] mb-8 flex items-center gap-3">
+          <span className="w-8 h-px bg-[var(--copper)] opacity-40" />
+          CURATED DAILY
+          <span className="w-8 h-px bg-[var(--copper)] opacity-40" />
+        </div>
 
-        <div className="relative mx-auto max-w-3xl text-center">
-          <Badge
-            variant="outline"
-            className="mb-8 border-amber-500/30 bg-amber-500/5 text-amber-400 font-pixel text-[9px]"
+        {/* Title */}
+        <h1 className="font-display text-6xl sm:text-[96px] font-normal text-[var(--text-display)] tracking-[-0.04em] leading-none mb-6">
+          SIDE <span className="text-[var(--copper)]">QUEST</span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-lg font-light text-[var(--text-secondary)] leading-relaxed max-w-[500px] mb-9">
+          The internet&apos;s pain points, distilled into{" "}
+          <strong className="text-[var(--copper)] font-normal">10 buildable ideas</strong>{" "}
+          every morning. No noise. Just signal.
+        </p>
+
+        {/* CTA buttons */}
+        <div className="flex gap-3 mb-12">
+          <a
+            href="#ideas"
+            className="font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3.5 rounded-full bg-[var(--copper)] text-[var(--bg)] cursor-pointer transition-all duration-200 hover:opacity-85 hover:-translate-y-px shadow-[0_4px_20px_rgba(196,149,106,0.15)] hover:shadow-[0_8px_32px_rgba(196,149,106,0.25)] inline-block"
           >
-            <Sparkles className="mr-1.5 size-3" />
-            NEW QUEST AVAILABLE
-          </Badge>
+            TODAY&apos;S DROP &darr;
+          </a>
+          <a
+            href="#how"
+            className="font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3.5 rounded-full bg-transparent text-[var(--text-primary)] border border-[var(--glass-border)] cursor-pointer transition-all duration-200 hover:border-[var(--copper)] hover:text-[var(--copper)] inline-block"
+          >
+            HOW IT WORKS
+          </a>
+        </div>
 
-          <HeroTypewriter />
-
-          <p className="mx-auto mt-8 max-w-xl text-base text-muted-foreground leading-relaxed">
-            The internet complained all night. We took notes. Here are{" "}
-            <strong className="text-amber-400">10 problems</strong> worth
-            building.
-          </p>
-
-          <div className="mt-10">
-            <Button
-              size="lg"
-              className="bg-amber-500 text-black font-bold hover:bg-amber-400 border-0 text-sm px-8"
-              render={<Link href="/ideas" />}
-            >
-              Browse Quests
-              <ArrowRight className="ml-1.5 size-4" />
-            </Button>
-          </div>
+        {/* Scanner ribbon */}
+        <ScannerRibbon ideasCount={todayIdeas.length} postsAnalyzed={847} />
+        {/* Scan sweep */}
+        <div className="w-full max-w-[900px] h-0.5 bg-[rgba(255,255,255,0.03)] rounded-[1px] overflow-hidden">
+          <div className="h-full w-0 bg-gradient-to-r from-transparent via-[var(--copper)] to-transparent" style={{ animation: "sweep 3s ease-in-out infinite" }} />
         </div>
       </section>
 
-      {/* Spotlight — Idea of the Day */}
-      {spotlightIdea && (
-        <section className="relative px-4 py-8 sm:px-6">
-          <div className="mx-auto max-w-4xl">
-            <p className="font-pixel text-[10px] text-amber-400 mb-4 text-center">
-              IDEA OF THE DAY
-            </p>
-            <SpotlightCard idea={spotlightIdea} />
-          </div>
-        </section>
+      <div className="h-16" />
+
+      {/* ── Ticker ── */}
+      <MarqueeTicker ideas={todayIdeas} />
+
+      {/* ── Spotlight ── */}
+      {spotlight && (
+        <div className="mt-16">
+          <SpotlightCard idea={spotlight} />
+        </div>
       )}
 
-      {/* Today's Ideas */}
-      <section className="relative px-4 py-16 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex items-end justify-between">
-            <div>
-              <p className="font-pixel text-[10px] text-amber-400 mb-2">
-                DAILY LOOT DROP
-              </p>
-              <h2 className="text-2xl font-bold tracking-tight">
-                Today&apos;s Quests
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Freshly scouted this morning. Pick one and start building.
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-amber-400 text-xs"
-              render={<Link href="/ideas" />}
-            >
-              All Quests
-              <ArrowRight className="ml-1 size-3" />
-            </Button>
-          </div>
-          {remainingIdeas.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {remainingIdeas.map((idea) => (
-                <IdeaCard key={idea.id} idea={idea} />
-              ))}
-            </div>
-          ) : (
-            <div className="pixel-border rounded-lg p-16 text-center bg-card">
-              <Cpu className="mx-auto mb-4 size-8 text-muted-foreground/40" />
-              <p className="text-muted-foreground">
-                Today&apos;s quest board hasn&apos;t loaded yet. Check back soon!
-              </p>
-            </div>
-          )}
+      {/* ── Ideas Grid ── */}
+      <div id="ideas" className="px-6 sm:px-12 py-16">
+        <div className="flex justify-between items-baseline mb-8">
+          <span className="font-label text-[10px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">
+            TODAY&apos;S IDEAS
+          </span>
+          <span className="font-label text-[11px] text-[var(--text-disabled)]">
+            {todayIdeas.length} AVAILABLE
+          </span>
         </div>
-      </section>
 
-      {/* How It Works */}
-      <section className="relative px-4 py-16 sm:px-6">
-        <div className="mx-auto max-w-4xl">
-          <p className="font-pixel text-[10px] text-cyan-400 mb-2 text-center">
-            HOW TO PLAY
-          </p>
-          <h2 className="mb-12 text-center text-2xl font-bold tracking-tight">
-            Three steps to your next app
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              {
-                icon: Swords,
-                step: "01",
-                title: "We scout",
-                desc: "Our bots raid Reddit, HN, and Product Hunt every morning — finding the complaints, the frustrations, the \"why doesn't this exist\" posts.",
-                color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-              },
-              {
-                icon: Cpu,
-                step: "02",
-                title: "We curate",
-                desc: "Hundreds of posts get distilled into 10 legit app ideas — complete with who needs it, how to charge, and how hard it is to build.",
-                color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
-              },
-              {
-                icon: Scroll,
-                step: "03",
-                title: "You ship",
-                desc: "Pick a quest that vibes with you, open your editor, and start building. Weekend projects to month-long campaigns — your call.",
-                color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-              },
-            ].map((step) => (
-              <div
-                key={step.title}
-                className="pixel-border rounded-lg bg-card p-5 transition-all duration-200"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`flex size-10 items-center justify-center rounded-lg border ${step.color}`}>
-                    <step.icon className="size-5" />
-                  </div>
-                  <span className="font-pixel text-[10px] text-muted-foreground/40">
-                    {step.step}
-                  </span>
-                </div>
-                <h3 className="mb-2 font-semibold">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {step.desc}
-                </p>
-              </div>
+        {todayIdeas.length > 0 ? (
+          <div className="grid-ideas grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {todayIdeas.map((idea) => (
+              <IdeaCard key={idea.id} idea={idea} />
             ))}
           </div>
+        ) : (
+          <div className="glass-card p-16 text-center cursor-default">
+            <p className="text-[var(--text-secondary)]">
+              No ideas distilled yet today. Check back soon.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Categories ── */}
+      <div id="categories" className="px-6 sm:px-12 py-24 border-t border-[rgba(255,255,255,0.06)]">
+        <div className="flex justify-between items-baseline mb-8">
+          <span className="font-label text-[10px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">
+            CATEGORIES
+          </span>
+          <span className="font-label text-[11px] text-[var(--text-disabled)]">
+            {Object.keys(categoryCounts).length} CATEGORIES
+          </span>
         </div>
-      </section>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Object.entries(categoryCounts).map(([cat, data]) => (
+            <Link
+              key={cat}
+              href={`/ideas?category=${encodeURIComponent(cat)}`}
+              className="glass-card hover:cursor-pointer block"
+            >
+              <div className="font-display text-[42px] text-[var(--text-display)] leading-none mb-2.5 tracking-[-0.02em]">
+                {data.count}
+              </div>
+              <div className="font-label text-xs tracking-[0.08em] uppercase text-[var(--text-secondary)] mb-4 transition-colors duration-200 group-hover:text-[var(--copper)]">
+                {cat}
+              </div>
+              <div className="flex flex-col gap-2 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+                {data.ideas.map((name) => (
+                  <span key={name} className="text-sm text-[var(--text-disabled)]">{name}</span>
+                ))}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Archive ── */}
+      <ArchiveSection dates={dates} />
+
+      {/* ── How It Works ── */}
+      <div id="how" className="px-6 sm:px-12 py-24 border-t border-[rgba(255,255,255,0.06)]">
+        <div className="font-label text-[10px] tracking-[0.12em] uppercase text-[var(--text-secondary)] mb-12 text-center">
+          HOW IT WORKS
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-[900px] mx-auto">
+          {[
+            {
+              num: "01",
+              title: "Scan the noise",
+              desc: "Bots sweep Reddit, HN, and Product Hunt overnight for complaints and unmet needs.",
+            },
+            {
+              num: "02",
+              title: "Distill the signal",
+              desc: "AI reduces hundreds of posts to 10 actionable ideas with full context.",
+            },
+            {
+              num: "03",
+              title: "Pick and ship",
+              desc: "Generate a build prompt, open your editor, and start building.",
+            },
+          ].map((step) => (
+            <div key={step.num} className="glass-card text-center cursor-default p-8">
+              <div className="font-display text-[42px] text-[var(--copper)] leading-none mb-4">
+                {step.num}
+              </div>
+              <div className="text-base font-medium text-[var(--text-display)] mb-2">
+                {step.title}
+              </div>
+              <div className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                {step.desc}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

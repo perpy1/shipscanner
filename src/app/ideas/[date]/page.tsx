@@ -1,143 +1,95 @@
-import {
-  getIdeasByDate,
-  getAvailableDates,
-  getScanByDate,
-} from "@/lib/queries";
+import { getIdeasByDate, getAvailableDates, getScanByDate } from "@/lib/queries";
 import { IdeaCard } from "@/components/ideas/idea-card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Cpu } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-export async function generateMetadata(props: {
-  params: Promise<{ date: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ date: string }> }): Promise<Metadata> {
   const { date } = await props.params;
-  const formatted = new Date(date + "T12:00:00").toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  return {
-    title: `Ideas for ${formatted} — SideQuest`,
-    description: `AI-generated app ideas from ${formatted}. Sourced from real pain points on Reddit, HN, and Product Hunt.`,
-  };
+  const formatted = new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  return { title: `Ideas for ${formatted} — SideQuest`, description: `Curated app ideas from ${formatted}.` };
 }
 
-export default async function DatePage(props: {
-  params: Promise<{ date: string }>;
-}) {
+export default async function DatePage(props: { params: Promise<{ date: string }> }) {
   const { date } = await props.params;
   const dates = await getAvailableDates();
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    notFound();
-  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) notFound();
 
   const ideas = await getIdeasByDate(date);
   const scan = await getScanByDate(date);
-
   const currentIdx = dates.indexOf(date);
-  const prevDate =
-    currentIdx < dates.length - 1 ? dates[currentIdx + 1] : null;
+  const prevDate = currentIdx < dates.length - 1 ? dates[currentIdx + 1] : null;
   const nextDate = currentIdx > 0 ? dates[currentIdx - 1] : null;
-
-  const formatted = new Date(date + "T12:00:00").toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  const formatted = new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <Link
-            href="/ideas"
-            className="hover:text-amber-400 transition-colors"
-          >
-            All Ideas
-          </Link>
-          <ChevronRight className="size-3" />
+    <div className="mx-auto max-w-6xl px-6 sm:px-12 py-12">
+      <div className="mb-10">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-4">
+          <Link href="/ideas" className="hover:text-[var(--copper)] transition-colors">Archive</Link>
+          <span className="text-[var(--text-disabled)]">/</span>
           <span>{formatted}</span>
         </div>
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-pixel text-[10px] text-amber-400 mb-2">
+            <div className="font-label text-[10px] tracking-[0.12em] uppercase text-[var(--copper)] mb-3">
               DAILY DROP
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight">{formatted}</h1>
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-normal text-[var(--text-display)] tracking-[-0.02em] mb-2">
+              {formatted}
+            </h1>
             {scan && (
-              <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
-                <Badge variant="secondary" className="text-xs font-mono">
-                  <Cpu className="mr-1 size-3" />
-                  {scan.posts_analyzed} posts scanned
-                </Badge>
+              <div className="mt-2 flex items-center gap-4 font-label text-[10px] tracking-[0.08em] uppercase text-[var(--text-secondary)]">
+                <span>{scan.posts_analyzed} posts scanned</span>
+                <span className="w-px h-3 bg-[rgba(255,255,255,0.06)]" />
                 <span>{scan.sources_scraped} sources</span>
               </div>
             )}
           </div>
-
           <div className="flex gap-2">
             {prevDate ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs font-mono"
-                render={<Link href={`/ideas/${prevDate}`} />}
+              <Link
+                href={`/ideas/${prevDate}`}
+                className="font-label text-[10px] tracking-[0.06em] uppercase px-4 py-2 rounded-full border border-[var(--glass-border)] text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--copper)] hover:text-[var(--copper)]"
               >
-                <ChevronLeft className="size-4" />
-                Prev
-              </Button>
+                &larr; Prev
+              </Link>
             ) : (
-              <Button variant="outline" size="sm" className="text-xs font-mono" disabled>
-                <ChevronLeft className="size-4" />
-                Prev
-              </Button>
+              <span className="font-label text-[10px] tracking-[0.06em] uppercase px-4 py-2 rounded-full border border-[var(--glass-border)] text-[var(--text-disabled)] opacity-50 cursor-not-allowed">
+                &larr; Prev
+              </span>
             )}
             {nextDate ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs font-mono"
-                render={<Link href={`/ideas/${nextDate}`} />}
+              <Link
+                href={`/ideas/${nextDate}`}
+                className="font-label text-[10px] tracking-[0.06em] uppercase px-4 py-2 rounded-full border border-[var(--glass-border)] text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--copper)] hover:text-[var(--copper)]"
               >
-                Next
-                <ChevronRight className="size-4" />
-              </Button>
+                Next &rarr;
+              </Link>
             ) : (
-              <Button variant="outline" size="sm" className="text-xs font-mono" disabled>
-                Next
-                <ChevronRight className="size-4" />
-              </Button>
+              <span className="font-label text-[10px] tracking-[0.06em] uppercase px-4 py-2 rounded-full border border-[var(--glass-border)] text-[var(--text-disabled)] opacity-50 cursor-not-allowed">
+                Next &rarr;
+              </span>
             )}
           </div>
         </div>
       </div>
 
       {ideas.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {ideas.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} />
-          ))}
+        <div className="grid-ideas grid gap-8 sm:grid-cols-2">
+          {ideas.map((idea) => <IdeaCard key={idea.id} idea={idea} />)}
         </div>
       ) : (
-        <div className="pixel-border rounded-lg bg-card p-12 text-center">
-          <p className="text-muted-foreground">
-            No ideas found for this date.
-          </p>
-          <Button
-            variant="outline"
-            className="mt-4 font-mono text-xs"
-            render={<Link href="/ideas" />}
+        <div className="glass-card p-12 text-center cursor-default">
+          <p className="text-[var(--text-secondary)]">No ideas distilled on this date.</p>
+          <Link
+            href="/ideas"
+            className="inline-block mt-4 font-label text-[10px] tracking-[0.06em] uppercase px-5 py-2 rounded-full border border-[var(--glass-border)] text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--copper)] hover:text-[var(--copper)]"
           >
-            Browse all ideas
-          </Button>
+            Back to archive
+          </Link>
         </div>
       )}
     </div>
