@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SideQuest — Obsidian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;700&family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  [id] { scroll-margin-top: 80px; }
+
+  :root {
+    --bg: #0A0A0C;
+    --surface: rgba(255,255,255,0.03);
+    --glass: rgba(255,255,255,0.05);
+    --glass-border: rgba(255,255,255,0.08);
+    --glass-hover: rgba(255,255,255,0.08);
+    --copper: #C4956A;
+    --copper-dim: rgba(196,149,106,0.15);
+    --copper-glow: rgba(196,149,106,0.08);
+    --text-display: #F5F0EB;
+    --text-primary: #C8C2BA;
+    --text-secondary: #7A746C;
+    --text-disabled: #4A453E;
+    --border: rgba(255,255,255,0.06);
+    --success: #6B9E7A;
+    --warning: #C4956A;
+    --danger: #C46A6A;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background glow */
+  .ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ambient::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 30%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--copper-glow) 0%, transparent 70%);
+    filter: blur(80px);
+  }
+  .ambient::after {
+    content: '';
+    position: absolute;
+    bottom: 10%;
+    right: 20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(106,130,196,0.04) 0%, transparent 70%);
+    filter: blur(60px);
+  }
+
+  .page { position: relative; z-index: 1; }
+
+  /* Nav */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    backdrop-filter: blur(20px);
+    background: rgba(10,10,12,0.6);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .nav-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-display);
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--copper); font-weight: 300; }
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .nav-links a {
+    color: var(--text-disabled);
+    text-decoration: none;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a:hover { color: var(--text-primary); }
+  .nav-links a.active { color: var(--copper); }
+  .nav-links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--copper);
+  }
+  .nav-cta {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    border-radius: 999px;
+    background: var(--copper);
+    color: var(--bg);
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* Hero — cinematic centered */
+  .hero {
+    text-align: center;
+    padding: 100px 48px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow-line {
+    width: 32px;
+    height: 1px;
+    background: var(--copper);
+    opacity: 0.4;
+  }
+  .hero h1 {
+    font-family: 'Doto', monospace;
+    font-size: 96px;
+    font-weight: 400;
+    color: var(--text-display);
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    margin-bottom: 24px;
+  }
+  .hero-sub {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 500px;
+    margin-bottom: 36px;
+  }
+  .hero-sub strong { color: var(--copper); font-weight: 400; }
+  .hero-cta-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .hero-cta-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: var(--copper);
+    color: var(--bg);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(196,149,106,0.15);
+  }
+  .hero-cta-btn:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(196,149,106,0.25); }
+  .hero-cta-ghost {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hero-cta-ghost:hover { border-color: var(--copper); color: var(--copper); }
+
+  /* Scanner ribbon — full-width glass bar */
+  .scanner-ribbon {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scanner-ribbon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--copper), transparent);
+    opacity: 0.25;
+  }
+  .ribbon-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .ribbon-num {
+    font-family: 'Doto', monospace;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text-display);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .ribbon-num.copper { color: var(--copper); }
+  .ribbon-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .ribbon-sep {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  /* Live dot in ribbon */
+  .ribbon-live {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .scanner-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--copper);
+    border-radius: 50%;
+    animation: scan-pulse 2s ease-in-out infinite;
+  }
+  @keyframes scan-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(196,149,106,0.4); }
+    50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(196,149,106,0); }
+  }
+  .ribbon-live-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--copper);
+  }
+  /* Scan sweep under ribbon */
+  .scan-sweep {
+    width: 100%;
+    max-width: 900px;
+    height: 2px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 1px;
+    overflow: hidden;
+    margin-top: 0;
+  }
+  .scan-sweep-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, transparent, var(--copper), transparent);
+    animation: sweep 3s ease-in-out infinite;
+  }
+  @keyframes sweep {
+    0% { width: 0%; margin-left: 0%; }
+    50% { width: 40%; margin-left: 30%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+
+  /* Ticker */
+  .ticker {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-flex;
+    gap: 48px;
+    animation: scroll 30s linear infinite;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-disabled);
+  }
+  .ticker-inner .hot { color: var(--copper); }
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* Glass Cards Grid */
+  .grid-section {
+    padding: 64px 48px;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 32px;
+  }
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .section-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-disabled);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  /* Glass card */
+  .glass-card {
+    background: var(--glass);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 28px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: background 0.3s;
+  }
+  .glass-card:hover {
+    background: var(--glass-hover);
+    border-color: rgba(255,255,255,0.12);
+    transform: translateY(-2px);
+  }
+  /* Active — scale up, copper glow, border bloom */
+  .glass-card.active {
+    border-color: var(--copper);
+    background: rgba(196,149,106,0.05);
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(196,149,106,0.08), 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 2;
+  }
+  .glass-card.active::before {
+    background: linear-gradient(90deg, transparent, var(--copper), transparent);
+    opacity: 0.5;
+  }
+  .glass-card.active .card-name { color: var(--copper); }
+  .glass-card.active .card-arrow {
+    border-color: var(--copper);
+    color: var(--copper);
+    transform: rotate(90deg);
+  }
+  /* Dim siblings when one is active */
+  .grid.has-active .glass-card:not(.active) {
+    opacity: 0.45;
+    transform: scale(0.98);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .card-diff {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+  .diff-easy { color: var(--success); border-color: rgba(107,158,122,0.3); }
+  .diff-mid { color: var(--warning); border-color: rgba(196,149,106,0.3); }
+  .diff-hard { color: var(--danger); border-color: rgba(196,106,106,0.3); }
+
+  .card-potential {
+    display: flex;
+    gap: 3px;
+  }
+  .pot-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-disabled);
+    transition: background 0.2s;
+  }
+  .pot-dot.filled { background: var(--copper); }
+
+  .card-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-display);
+    margin-bottom: 8px;
+    transition: color 0.3s;
+    line-height: 1.3;
+  }
+  .card-liner {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .card-source {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-disabled);
+  }
+  .card-arrow {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-disabled);
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  .glass-card:hover .card-arrow {
+    border-color: var(--copper);
+    color: var(--copper);
+  }
+
+  /* Expand detail — INSIDE the card */
+  .card-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  .glass-card.active .card-detail {
+    max-height: 350px;
+  }
+  .card-detail-inner {
+    padding-top: 20px;
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  /* Staggered reveal for panel items */
+  .panel-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .glass-card.active .panel-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .glass-card.active .panel-item:nth-child(1) { transition-delay: 0.06s; }
+  .glass-card.active .panel-item:nth-child(2) { transition-delay: 0.12s; }
+  .glass-card.active .panel-item:nth-child(3) { transition-delay: 0.18s; }
+  .glass-card.active .panel-item:nth-child(4) { transition-delay: 0.24s; }
+
+  .panel-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .panel-value {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+  .panel-actions {
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease 0.3s, transform 0.3s ease 0.3s;
+  }
+  .glass-card.active .panel-actions {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .panel-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-copper {
+    background: var(--copper);
+    color: var(--bg);
+    border: none;
+  }
+  .btn-copper:hover { opacity: 0.85; }
+  .btn-glass {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+  }
+  .btn-glass:hover { border-color: rgba(255,255,255,0.15); }
+
+  /* Featured spotlight */
+  /* Spotlight wrapper — clips the rotating glow */
+  .spotlight-wrap {
+    margin: 0 48px 64px;
+    border-radius: 20px;
+    padding: 1px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  /* Rotating bronze glow border */
+  .spotlight-wrap::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 250deg,
+      rgba(196,149,106,0.3) 280deg,
+      var(--copper) 305deg,
+      rgba(196,149,106,0.3) 330deg,
+      transparent 360deg
+    );
+    animation: border-spin 6s linear infinite;
+    z-index: 0;
+  }
+  @keyframes border-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  /* Outer soft glow */
+  .spotlight-wrap::after {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    border-radius: 40px;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 260deg,
+      rgba(196,149,106,0.06) 290deg,
+      rgba(196,149,106,0.1) 310deg,
+      rgba(196,149,106,0.06) 330deg,
+      transparent 360deg
+    );
+    animation: border-spin 6s linear infinite;
+    filter: blur(20px);
+    z-index: -1;
+  }
+  .spotlight {
+    background: var(--bg);
+    backdrop-filter: blur(30px);
+    border-radius: 19px;
+    padding: 56px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 48px;
+    position: relative;
+    z-index: 1;
+  }
+  .spotlight-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 16px;
+  }
+  .spotlight h2 {
+    font-family: 'Doto', monospace;
+    font-size: 48px;
+    font-weight: 400;
+    color: var(--text-display);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .spotlight-desc {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .spotlight-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: var(--copper);
+    color: var(--bg);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .spotlight-btn:hover { opacity: 0.85; transform: translateX(2px); }
+  .spotlight-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .sp-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sp-row:last-child { border-bottom: none; }
+  .sp-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .sp-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    text-align: right;
+    max-width: 55%;
+  }
+
+  /* How it works */
+  .how-section {
+    padding: 96px 48px;
+    border-top: 1px solid var(--border);
+  }
+  .how-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 48px;
+    text-align: center;
+  }
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .how-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  .how-num {
+    font-family: 'Doto', monospace;
+    font-size: 42px;
+    color: var(--copper);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .how-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-display);
+    margin-bottom: 8px;
+  }
+  .how-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<div class="page">
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">side<span>quest</span></div>
+  <div class="nav-links">
+    <a href="#ideas" class="active">TODAY</a>
+    <a href="#spotlight">SPOTLIGHT</a>
+    <a href="#how">HOW IT WORKS</a>
+  </div>
+  <button class="nav-cta">SUBSCRIBE</button>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <span class="eyebrow-line"></span>
+    CURATED DAILY
+    <span class="eyebrow-line"></span>
+  </div>
+  <h1>SIDE QUEST</h1>
+  <div class="hero-sub">The internet's pain points, distilled into <strong>10 buildable ideas</strong> every morning. No noise. Just signal.</div>
+  <div class="hero-cta-row">
+    <button class="hero-cta-btn">TODAY'S DROP &darr;</button>
+    <button class="hero-cta-ghost">HOW IT WORKS</button>
+  </div>
+  <div class="scanner-ribbon">
+    <div class="ribbon-item">
+      <span class="ribbon-num" id="scanCount">847</span>
+      <span class="ribbon-label">SCANNED</span>
+    </div>
+    <div class="ribbon-sep"></div>
+    <div class="ribbon-item">
+      <span class="ribbon-num copper">10</span>
+      <span class="ribbon-label">DISTILLED</span>
+    </div>
+    <div class="ribbon-sep"></div>
+    <div class="ribbon-item">
+      <span class="ribbon-num">3</span>
+      <span class="ribbon-label">SOURCES</span>
+    </div>
+    <div class="ribbon-sep"></div>
+    <div class="ribbon-item">
+      <span class="ribbon-num" id="countdown">14:22:47</span>
+      <span class="ribbon-label">NEXT SCAN</span>
+    </div>
+    <div class="ribbon-live">
+      <span class="scanner-dot"></span>
+      <span class="ribbon-live-text">LIVE</span>
+    </div>
+  </div>
+  <div class="scan-sweep"><div class="scan-sweep-fill"></div></div>
+</div>
+
+<div style="height: 64px;"></div>
+
+<!-- Ticker -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span>CalSync <span class="hot">TRENDING</span></span>
+    <span>StatusPage.wtf</span>
+    <span>GitRoast</span>
+    <span>ReceiptVault</span>
+    <span>MeetingTL;DR</span>
+    <span>FocusFence</span>
+    <span>ParkSpot</span>
+    <span>PromptStash</span>
+    <span>InvoiceGhost</span>
+    <span>ColdMailer</span>
+    <span>CalSync <span class="hot">TRENDING</span></span>
+    <span>StatusPage.wtf</span>
+    <span>GitRoast</span>
+    <span>ReceiptVault</span>
+    <span>MeetingTL;DR</span>
+    <span>FocusFence</span>
+    <span>ParkSpot</span>
+    <span>PromptStash</span>
+    <span>InvoiceGhost</span>
+    <span>ColdMailer</span>
+  </div>
+</div>
+
+<!-- Spotlight -->
+<div class="spotlight-wrap" style="margin-top: 64px;">
+<div id="spotlight" class="spotlight">
+  <div>
+    <div class="spotlight-eyebrow">IDEA OF THE DAY</div>
+    <h2>CalSync</h2>
+    <div class="spotlight-desc">Universal calendar that actually syncs across Google, Outlook, and Apple without duplicating events. Everyone has this problem. Nobody's solved it well.</div>
+    <button class="spotlight-btn">GENERATE BUILD PROMPT &rarr;</button>
+  </div>
+  <div class="spotlight-right">
+    <div class="sp-row">
+      <span class="sp-label">PAIN POINT</span>
+      <span class="sp-value">Calendar sync breaks across providers</span>
+    </div>
+    <div class="sp-row">
+      <span class="sp-label">AUDIENCE</span>
+      <span class="sp-value">Remote workers, PMs</span>
+    </div>
+    <div class="sp-row">
+      <span class="sp-label">MONETIZATION</span>
+      <span class="sp-value">$12/mo SaaS, team plans</span>
+    </div>
+    <div class="sp-row">
+      <span class="sp-label">DIFFICULTY</span>
+      <span class="sp-value" style="color: var(--danger);">Month Campaign</span>
+    </div>
+    <div class="sp-row">
+      <span class="sp-label">POTENTIAL</span>
+      <span class="sp-value" style="color: var(--copper);">5 / 5</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Grid -->
+<div id="ideas" class="grid-section">
+  <div class="section-header">
+    <span class="section-label">TODAY'S IDEAS</span>
+    <span class="section-count">10 AVAILABLE</span>
+  </div>
+  <div class="grid">
+
+    <div class="glass-card" onclick="toggleCard(this)">
+      <div class="card-top">
+        <span class="card-diff diff-mid">WEEK</span>
+        <div class="card-potential">
+          <div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div>
+        </div>
+      </div>
+      <div class="card-name">StatusPage.wtf</div>
+      <div class="card-liner">Dead simple status page. Checks endpoints every 30s. One command deploy.</div>
+      <div class="card-footer">
+        <span class="card-source">HN</span>
+        <div class="card-arrow">&rarr;</div>
+      </div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <div class="panel-grid">
+          <div class="panel-item"><span class="panel-label">PAIN POINT</span><span class="panel-value">Existing status pages are bloated and overpriced</span></div>
+          <div class="panel-item"><span class="panel-label">AUDIENCE</span><span class="panel-value">Indie devs, startups</span></div>
+          <div class="panel-item"><span class="panel-label">MONETIZATION</span><span class="panel-value">$8/mo per page</span></div>
+          <div class="panel-item"><span class="panel-label">POTENTIAL</span><span class="panel-value" style="color: var(--copper);">5 / 5</span></div>
+        </div>
+        <div class="panel-actions">
+          <button class="panel-btn btn-copper">GENERATE PROMPT</button>
+          <button class="panel-btn btn-glass">VIEW SOURCE</button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="glass-card" onclick="toggleCard(this)">
+      <div class="card-top">
+        <span class="card-diff diff-mid">WEEK</span>
+        <div class="card-potential">
+          <div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot"></div>
+        </div>
+      </div>
+      <div class="card-name">GitRoast</div>
+      <div class="card-liner">AI code reviewer that roasts your PRs with brutally honest feedback.</div>
+      <div class="card-footer">
+        <span class="card-source">REDDIT</span>
+        <div class="card-arrow">&rarr;</div>
+      </div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <div class="panel-grid">
+          <div class="panel-item"><span class="panel-label">PAIN POINT</span><span class="panel-value">PR reviews are slow and superficial</span></div>
+          <div class="panel-item"><span class="panel-label">AUDIENCE</span><span class="panel-value">Dev teams, OSS maintainers</span></div>
+          <div class="panel-item"><span class="panel-label">MONETIZATION</span><span class="panel-value">$15/seat/mo</span></div>
+          <div class="panel-item"><span class="panel-label">POTENTIAL</span><span class="panel-value" style="color: var(--copper);">4 / 5</span></div>
+        </div>
+        <div class="panel-actions">
+          <button class="panel-btn btn-copper">GENERATE PROMPT</button>
+          <button class="panel-btn btn-glass">VIEW SOURCE</button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="glass-card" onclick="toggleCard(this)">
+      <div class="card-top">
+        <span class="card-diff diff-easy">WEEKEND</span>
+        <div class="card-potential">
+          <div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot"></div><div class="pot-dot"></div>
+        </div>
+      </div>
+      <div class="card-name">ReceiptVault</div>
+      <div class="card-liner">Snap receipts, auto-extract items and totals, export to spreadsheet.</div>
+      <div class="card-footer">
+        <span class="card-source">HN</span>
+        <div class="card-arrow">&rarr;</div>
+      </div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <div class="panel-grid">
+          <div class="panel-item"><span class="panel-label">PAIN POINT</span><span class="panel-value">Manual receipt tracking is tedious for tax time</span></div>
+          <div class="panel-item"><span class="panel-label">AUDIENCE</span><span class="panel-value">Freelancers, small biz</span></div>
+          <div class="panel-item"><span class="panel-label">MONETIZATION</span><span class="panel-value">Freemium, $5/mo</span></div>
+          <div class="panel-item"><span class="panel-label">POTENTIAL</span><span class="panel-value">3 / 5</span></div>
+        </div>
+        <div class="panel-actions">
+          <button class="panel-btn btn-copper">GENERATE PROMPT</button>
+          <button class="panel-btn btn-glass">VIEW SOURCE</button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="glass-card" onclick="toggleCard(this)">
+      <div class="card-top">
+        <span class="card-diff diff-easy">WEEKEND</span>
+        <div class="card-potential">
+          <div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot"></div><div class="pot-dot"></div><div class="pot-dot"></div>
+        </div>
+      </div>
+      <div class="card-name">MeetingTL;DR</div>
+      <div class="card-liner">Records meetings, one-paragraph summary + action items. No fluff.</div>
+      <div class="card-footer">
+        <span class="card-source">PH</span>
+        <div class="card-arrow">&rarr;</div>
+      </div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <div class="panel-grid">
+          <div class="panel-item"><span class="panel-label">PAIN POINT</span><span class="panel-value">Too many meetings, no actionable notes</span></div>
+          <div class="panel-item"><span class="panel-label">AUDIENCE</span><span class="panel-value">Product teams, managers</span></div>
+          <div class="panel-item"><span class="panel-label">MONETIZATION</span><span class="panel-value">$10/user/mo</span></div>
+          <div class="panel-item"><span class="panel-label">POTENTIAL</span><span class="panel-value">2 / 5</span></div>
+        </div>
+        <div class="panel-actions">
+          <button class="panel-btn btn-copper">GENERATE PROMPT</button>
+          <button class="panel-btn btn-glass">VIEW SOURCE</button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="glass-card" onclick="toggleCard(this)">
+      <div class="card-top">
+        <span class="card-diff diff-mid">WEEK</span>
+        <div class="card-potential">
+          <div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot"></div><div class="pot-dot"></div>
+        </div>
+      </div>
+      <div class="card-name">FocusFence</div>
+      <div class="card-liner">Blocks distracting apps per-project based on your current repo.</div>
+      <div class="card-footer">
+        <span class="card-source">REDDIT</span>
+        <div class="card-arrow">&rarr;</div>
+      </div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <div class="panel-grid">
+          <div class="panel-item"><span class="panel-label">PAIN POINT</span><span class="panel-value">Context-switching kills deep work</span></div>
+          <div class="panel-item"><span class="panel-label">AUDIENCE</span><span class="panel-value">Devs, designers, writers</span></div>
+          <div class="panel-item"><span class="panel-label">MONETIZATION</span><span class="panel-value">$6/mo</span></div>
+          <div class="panel-item"><span class="panel-label">POTENTIAL</span><span class="panel-value">3 / 5</span></div>
+        </div>
+        <div class="panel-actions">
+          <button class="panel-btn btn-copper">GENERATE PROMPT</button>
+          <button class="panel-btn btn-glass">VIEW SOURCE</button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="glass-card" onclick="toggleCard(this)">
+      <div class="card-top">
+        <span class="card-diff diff-hard">MONTH</span>
+        <div class="card-potential">
+          <div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot filled"></div><div class="pot-dot"></div>
+        </div>
+      </div>
+      <div class="card-name">ColdMailer</div>
+      <div class="card-liner">AI-powered cold outreach that doesn't sound like AI wrote it.</div>
+      <div class="card-footer">
+        <span class="card-source">PH</span>
+        <div class="card-arrow">&rarr;</div>
+      </div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <div class="panel-grid">
+          <div class="panel-item"><span class="panel-label">PAIN POINT</span><span class="panel-value">Cold emails are ignored because they're generic</span></div>
+          <div class="panel-item"><span class="panel-label">AUDIENCE</span><span class="panel-value">Sales teams, founders</span></div>
+          <div class="panel-item"><span class="panel-label">MONETIZATION</span><span class="panel-value">$29/mo</span></div>
+          <div class="panel-item"><span class="panel-label">POTENTIAL</span><span class="panel-value" style="color: var(--copper);">4 / 5</span></div>
+        </div>
+        <div class="panel-actions">
+          <button class="panel-btn btn-copper">GENERATE PROMPT</button>
+          <button class="panel-btn btn-glass">VIEW SOURCE</button>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- How -->
+<div id="how" class="how-section">
+  <div class="how-label">HOW IT WORKS</div>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <div class="how-title">Scan the noise</div>
+      <div class="how-desc">Bots sweep Reddit, HN, and Product Hunt overnight for complaints and unmet needs.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <div class="how-title">Distill the signal</div>
+      <div class="how-desc">AI reduces hundreds of posts to 10 actionable ideas with full context.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <div class="how-title">Pick and ship</div>
+      <div class="how-desc">Generate a build prompt, open your editor, and start building.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// Haptic click sounds — physical, not digital
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playClick(isOpen) {
+  const now = audioCtx.currentTime;
+
+  // Pure noise impulse — like a physical thock/tick
+  const len = audioCtx.sampleRate * (isOpen ? 0.018 : 0.012);
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) {
+    // Sharp attack, instant decay — sounds like a mechanism engaging
+    const env = Math.pow(1 - i / len, isOpen ? 8 : 12);
+    d[i] = (Math.random() * 2 - 1) * env;
+  }
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+
+  // Low-pass filter — removes harshness, keeps the thud
+  const lp = audioCtx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = isOpen ? 2400 : 1800;
+  lp.Q.value = 0.7;
+
+  // High-pass filter — removes boominess
+  const hp = audioCtx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 300;
+  hp.Q.value = 0.5;
+
+  const vol = audioCtx.createGain();
+  vol.gain.value = isOpen ? 0.25 : 0.18;
+
+  src.connect(hp).connect(lp).connect(vol).connect(audioCtx.destination);
+  src.start(now);
+}
+
+// Lighter tap for nav/buttons
+function playTap() {
+  const now = audioCtx.currentTime;
+  const len = audioCtx.sampleRate * 0.008;
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) {
+    d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 15);
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  const lp = audioCtx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 2000;
+  const vol = audioCtx.createGain();
+  vol.gain.value = 0.12;
+  src.connect(lp).connect(vol).connect(audioCtx.destination);
+  src.start(now);
+}
+
+// Attach tap sounds to nav/buttons
+document.querySelectorAll('nav a, .hero-cta-btn, .hero-cta-ghost, .nav-cta, .spotlight-btn, .panel-btn').forEach(el => {
+  el.addEventListener('click', playTap);
+});
+
+// Animate the scan count number on load
+function animateCount(el, target, duration) {
+  let start = 0;
+  const step = (timestamp) => {
+    if (!start) start = timestamp;
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+const scanEl = document.getElementById('scanCount');
+if (scanEl) animateCount(scanEl, 847, 2000);
+
+function toggleCard(card) {
+  const grid = document.querySelector('.grid');
+  const isOpening = !card.classList.contains('active');
+
+  // Play sound
+  playClick(isOpening);
+
+  // Close all others
+  document.querySelectorAll('.glass-card.active').forEach(c => {
+    if (c !== card) c.classList.remove('active');
+  });
+
+  if (isOpening) {
+    card.classList.add('active');
+    grid.classList.add('has-active');
+  } else {
+    card.classList.remove('active');
+    grid.classList.remove('has-active');
+  }
+}
+
+// Live countdown timer
+(function() {
+  let total = 14 * 3600 + 22 * 60 + 47; // 14:22:47 in seconds
+  const el = document.getElementById('countdown');
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    if (total <= 0) total = 24 * 3600; // reset to 24h
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    total--;
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+// Smooth scroll for nav links
+document.querySelectorAll('nav a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Today's Drop button scrolls to ideas
+document.querySelector('.hero-cta-btn')?.addEventListener('click', () => {
+  document.getElementById('ideas')?.scrollIntoView({ behavior: 'smooth' });
+});
+// How It Works button scrolls to how
+document.querySelector('.hero-cta-ghost')?.addEventListener('click', () => {
+  document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' });
+});
+</script>
+
+</body>
+</html>
