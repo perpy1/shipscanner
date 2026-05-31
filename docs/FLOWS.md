@@ -37,10 +37,12 @@ Runs twice a day via Vercel Cron (`vercel.json`): **13:00 UTC** and **23:00 UTC*
 │    • log a `daily_scans` row (counts)         │
 └──────┬───────────────────────────────────────┘
        ▼
-┌──────────────────────────────────────────────┐
-│ 4. (DIGEST) src/lib/email/ — game-themed HTML │
-│    sent to subscribers via Resend             │
-└──────────────────────────────────────────────┘
+   (done — ideas are now live on the site)
+
+Note: there is NO automated email step. The newsletter is a separate
+Substack (gabevibes.substack.com); the site's subscribe form hands off to
+Substack's hosted subscribe page (email prefilled). The pipeline only
+generates ideas.
 ```
 
 **Key rule for designers:** the AI is told to spread across **≥6 categories** and **mix difficulties** (some Weekend, some Week, some Month), and to never repeat a pain point from the last 14 days. So a daily drop is intentionally varied — the grid should look heterogeneous, never 10 of the same category.
@@ -103,5 +105,5 @@ Category → stack examples: SaaS → *Next.js + Supabase + Stripe*; AI/ML → *
 | Scanner ribbon (live counts) | `src/components/scanner-ribbon.tsx` |
 | Full list + filters | `src/app/ideas/page.tsx`, `src/components/ideas/idea-filters.tsx` |
 | Slot-machine (⚠️ built, not wired in) | `src/components/slot-machine/` |
-| Email digest (⚠️ old theme) | `src/lib/email/daily-digest.tsx` |
+| Newsletter signup → Substack | `src/components/subscribe-form.tsx`, `src/lib/substack.ts` |
 | Design tokens | `src/app/globals.css` |

@@ -27,5 +27,5 @@ No Supabase needed — the site falls back to **seed data** (`src/lib/seed-data.
 ## ⚠️ Open items (see ARCHITECTURE.md for detail)
 
 - `src/components/slot-machine/` is built but **not wired into the site**.
-- The **email digest** still uses the **old game theme** (amber/cyan/emoji), not Obsidian.
+- The **newsletter** is a Substack (`gabevibes.substack.com`); the site's signup form forwards to it via `/api/subscribe`. The old homegrown email digest was removed.
 - An uncommitted `analyze.ts` change adds 14-day idea de-duplication.

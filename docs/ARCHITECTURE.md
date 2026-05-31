@@ -12,7 +12,7 @@ A Next.js 16 app on Vercel. Two halves: a **public read-only site** (server comp
 | Styling | Tailwind v4 + shadcn/ui (base-ui primitives) |
 | Database | Supabase (Postgres) — `ideas`, `daily_scans` tables |
 | AI | Anthropic Claude (`claude-sonnet-4-6`) via `@anthropic-ai/sdk` |
-| Email | Resend (daily digest) |
+| Newsletter | Substack (signups forwarded server-side from the site) |
 | Scheduling | Vercel Cron |
 | Share images | `html2canvas-pro` |
 | Deploy | Vercel |
@@ -30,7 +30,6 @@ src/
 │   ├── categories/page.tsx   # Browse by category
 │   ├── dashboard/page.tsx    # Dashboard view
 │   ├── api/scan/route.ts     # ⭐ The pipeline endpoint (GET cron / POST manual)
-│   ├── api/subscribe/route.ts# Email signup
 │   ├── actions/ideas.ts      # Server actions
 │   ├── auth/callback/route.ts# Supabase auth callback
 │   ├── layout.tsx, globals.css, error.tsx, not-found.tsx, sitemap.ts
@@ -51,7 +50,7 @@ src/
 │   ├── sounds.ts             # Web Audio 8-bit SFX
 │   ├── ai/analyze.ts         # ⭐ Claude call: posts → 10 ideas (+ dedup)
 │   ├── scrapers/             # reddit, hackernews, producthunt, index (scrapeAll)
-│   ├── email/                # daily-digest (⚠️ old theme), send
+│   ├── substack.ts           # Substack URL/handle config
 │   └── supabase/             # client, server, admin
 │
 └── types/index.ts            # Idea, DailyScan, User, ScrapedPost, etc.
@@ -113,7 +112,7 @@ runScan():
 | `SUPABASE_SERVICE_ROLE_KEY` | Admin writes + dedup query (pipeline) |
 | `ANTHROPIC_API_KEY` | Claude (read by the SDK automatically) |
 | `CRON_SECRET` | Bearer token guarding `/api/scan` |
-| `RESEND_API_KEY` | Email digest delivery |
+| *(none for newsletter)* | The Substack URL lives in `src/lib/substack.ts` — no env var or API route needed |
 
 See `.env.local.example`. **Without Supabase vars, the site runs on seed data.**
 
@@ -128,6 +127,6 @@ See `.env.local.example`. **Without Supabase vars, the site runs on seed data.**
 ## ⚠️ Loose ends a designer/eng should know about
 
 1. **`src/components/slot-machine/`** — a full slot-machine UI (reel, lever-button, jackpot-animation, slot-machine; ~281 lines) that is **not imported anywhere**. Decide: wire it into a "spin for a random idea" feature, or delete it.
-2. **`src/lib/email/daily-digest.tsx`** — still the **old amber/cyan game theme** (emoji, "WEEKEND QUEST", "GOLD POTENTIAL"). Not migrated to Obsidian. Email ≠ web visually.
+2. **Newsletter = Substack.** The old homegrown email system (`src/lib/email/` digest + Resend) was removed. The site's subscribe form (`subscribe-form.tsx`) hands off to Substack's **hosted** subscribe page with the email prefilled (`gabevibes.substack.com/subscribe?email=…`), opened in a new tab. We do **not** POST to Substack's API — it's behind a captcha that 403s server-side requests. No API route, no env var; the URL lives in `src/lib/substack.ts`.
 3. **Uncommitted `analyze.ts` change** (+116 lines) — adds the 14-day dedup context. Working but unpushed as of this writing.
 4. **`mockups/`** — 8 standalone HTML design explorations, not part of the build. Reference only.

@@ -2,35 +2,24 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { subscribeUrl } from "@/lib/substack";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function SubscribeForm({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email) return;
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      if (res.ok) {
-        toast.success("You're in — check your inbox to confirm.");
-        setEmail("");
-      } else {
-        const data = await res.json();
-        toast.error(data.error || "Something went wrong");
-      }
-    } catch {
-      toast.error("Failed to subscribe. Try again.");
-    } finally {
-      setLoading(false);
+    if (!EMAIL_RE.test(email)) {
+      toast.error("Enter a valid email address");
+      return;
     }
+    // Hand off to Substack's hosted subscribe page (email prefilled) — it
+    // handles the captcha/confirmation that the API blocks server-side.
+    window.open(subscribeUrl(email), "_blank", "noopener,noreferrer");
+    toast.success("Finishing on Substack — confirm in the new tab.");
+    setEmail("");
   }
 
   return (
@@ -46,11 +35,10 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
       />
       <button
         type="submit"
-        disabled={loading}
-        className="text-[15px] font-semibold px-5 py-3 rounded-[10px] cursor-pointer transition-all duration-200 disabled:opacity-60 whitespace-nowrap"
+        className="text-[15px] font-semibold px-5 py-3 rounded-[10px] cursor-pointer transition-all duration-200 whitespace-nowrap"
         style={{ background: "var(--accent)", color: "var(--on-accent)" }}
       >
-        {loading ? "Subscribing…" : "Subscribe"}
+        Subscribe
       </button>
     </form>
   );

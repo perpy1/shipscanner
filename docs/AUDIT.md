@@ -8,7 +8,7 @@
 2. **Wire up the dead features** — ✅ done. Email signup, Save/bookmark, and Share cards are now connected (details below).
 
 ### What got wired (commit `91c2c4a`)
-- **Email signup** — `SubscribeForm` (Nocturne restyle) now mounts on the homepage (dedicated band + empty state), posting to `/api/subscribe`.
+- **Newsletter signup** — `SubscribeForm` (Nocturne) mounts on the homepage as a "build → grow" band; on submit it hands off to the **Substack** hosted subscribe page (`gabevibes.substack.com`, email prefilled). Substack's API blocks server-side subscribes (403/captcha), so there's no API route. The old homegrown daily-digest + Resend were removed.
 - **Save** — localStorage-backed `useSavedIdeas` hook; every card's Save button toggles + reflects saved state, syncing across components/tabs. *(No account needed.)*
 - **Share** — `SocialCard` share-image restyled to Nocturne; a Share button on every card opens it.
 

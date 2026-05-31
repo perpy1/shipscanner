@@ -84,4 +84,4 @@ A calm, editorial dark aesthetic — **not** the old retro pixel game look, and 
 
 > Full tokens in **DESIGN.md**. System architecture and data flows in **ARCHITECTURE.md** + **FLOWS.md**. Outstanding work in **AUDIT.md**.
 
-The **daily email digest** (`src/lib/email/daily-digest.tsx`) now matches the Nocturne palette (dark + teal, serif headings) — the old amber/emoji "WEEKEND QUEST / GOLD POTENTIAL" game theme has been removed.
+**Newsletter:** the homegrown daily-email system was removed in favor of the existing **Substack** (`gabevibes.substack.com`) — creator marketing, growth, and AI content automations. The homepage "Build the idea. Then grow it." band captures the email and hands off to Substack's hosted subscribe page (email prefilled) to finish. Framing is a deliberate **build → grow** bridge: SideQuest says *what* to build, the newsletter says *how* to grow it.
