@@ -2,10 +2,21 @@
 
 > Grounded in the actual codebase (May 2026). Every finding cites the file it came from.
 
-## ✅ Chosen priorities (this cycle)
+## ✅ Chosen priorities (this cycle) — STATUS
 
-1. **Fix the fake / inaccurate data** — make the live scanner dashboard honest (see 🟠 below).
-2. **Wire up the dead features** — plug in email signup, save/bookmark, share cards (see 🔴 below).
+1. **Fix the fake / inaccurate data** — ✅ mostly done. The fake scanner ribbon (hardcoded `847`, wrong countdown, static "LIVE") was **removed** in the Nocturne redesign; the hero now shows a **real** `posts_analyzed` figure from the latest `daily_scans` row.
+2. **Wire up the dead features** — ✅ done. Email signup, Save/bookmark, and Share cards are now connected (details below).
+
+### What got wired (commit `91c2c4a`)
+- **Email signup** — `SubscribeForm` (Nocturne restyle) now mounts on the homepage (dedicated band + empty state), posting to `/api/subscribe`.
+- **Save** — localStorage-backed `useSavedIdeas` hook; every card's Save button toggles + reflects saved state, syncing across components/tabs. *(No account needed.)*
+- **Share** — `SocialCard` share-image restyled to Nocturne; a Share button on every card opens it.
+
+### Still open (next follow-ups)
+- **Dashboard "Saved ideas" count** still renders static `0` — not yet reading from `localStorage` (dashboard is a server component + auth-gated).
+- **Per-idea pages** (`/ideas/[id]`) + dynamic OG images — not started.
+- **Slot machine** (`src/components/slot-machine/`) — still unused.
+- **Sound mute toggle** (default-off) — not started.
 
 Other tiers are kept here for later.
 
