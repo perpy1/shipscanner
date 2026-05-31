@@ -5,19 +5,39 @@ import { Idea } from "@/types";
 import { playClick, playTap } from "@/lib/sounds";
 import { generateClaudePrompt } from "@/lib/generate-prompt";
 
-const difficultyConfig: Record<string, { label: string; cssClass: string }> = {
-  Weekend: { label: "WEEKEND", cssClass: "diff-easy" },
-  Week: { label: "WEEK", cssClass: "diff-mid" },
-  Month: { label: "MONTH", cssClass: "diff-hard" },
+const difficultyConfig: Record<string, { label: string; cssVar: string }> = {
+  Weekend: { label: "Weekend", cssVar: "var(--diff-weekend)" },
+  Week: { label: "Week", cssVar: "var(--diff-week)" },
+  Month: { label: "Month", cssVar: "var(--diff-month)" },
 };
 
-const platformLabel: Record<string, string> = {
-  reddit: "REDDIT",
-  hackernews: "HN",
-  producthunt: "PH",
-};
+/** Difficulty pill — colored dot + label */
+function DiffPill({ difficulty }: { difficulty: string }) {
+  const d = difficultyConfig[difficulty] || difficultyConfig.Weekend;
+  return (
+    <span className="inline-flex items-center gap-[7px] text-xs font-semibold" style={{ color: d.cssVar }}>
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: d.cssVar }} />
+      {d.label}
+    </span>
+  );
+}
 
-/** Prompt modal — shared by cards and spotlight */
+/** Viral potential dots */
+function Viral({ n }: { n: number }) {
+  return (
+    <span className="inline-flex items-center gap-1" title={`Viral potential ${n}/5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span
+          key={i}
+          className="w-1.5 h-1.5 rounded-full transition-colors duration-200"
+          style={{ background: i <= n ? "var(--accent)" : "var(--line)" }}
+        />
+      ))}
+    </span>
+  );
+}
+
+/** Prompt modal — kept for the spotlight / standalone "generate prompt" use */
 export function PromptModal({
   idea,
   open,
@@ -59,6 +79,9 @@ export function PromptModal({
   return (
     <div
       className={`modal-overlay ${open ? "open" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Build prompt for ${idea.name}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           playTap();
@@ -67,55 +90,43 @@ export function PromptModal({
       }}
     >
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        {/* Close button */}
         <button
           onClick={() => { playTap(); onClose(); }}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full border border-[var(--glass-border)] bg-transparent text-[var(--text-disabled)] text-base cursor-pointer flex items-center justify-center transition-all duration-200 hover:border-[var(--copper)] hover:text-[var(--copper)]"
+          aria-label="Close"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full border border-[var(--border)] bg-transparent text-[var(--mute)] text-base cursor-pointer flex items-center justify-center transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]"
         >
           &times;
         </button>
 
-        {/* Eyebrow */}
-        <div className="font-label text-[10px] tracking-[0.1em] uppercase text-[var(--copper)] mb-3 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--copper)]" style={{ animation: "scan-pulse 2s ease-in-out infinite" }} />
-          BUILD WITH CLAUDE
+        <div className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[var(--accent)] mb-3">
+          Build prompt
         </div>
-
-        {/* Name */}
-        <div className="font-display text-4xl font-normal text-[var(--text-display)] tracking-[-0.02em] leading-[1.1] mb-2">
+        <div className="font-head text-4xl text-[var(--text)] leading-[1.05] mb-2">
           {idea.name}
         </div>
-
-        {/* Liner */}
-        <div className="text-[15px] text-[var(--text-secondary)] leading-relaxed mb-6">
+        <div className="text-[15px] text-[var(--dim)] leading-relaxed mb-6">
           {idea.one_liner}
         </div>
 
-        {/* Prompt */}
-        <div className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)] mb-2">
-          GENERATED PROMPT
-        </div>
-        <div className="prompt-box mb-5">
-          {prompt}
-        </div>
+        <div className="prompt-box mb-4">{prompt}</div>
 
-        {/* Actions */}
         <div className="flex gap-2.5 items-center">
           <button
             onClick={handleCopy}
-            className={`font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3 rounded-full border-none cursor-pointer transition-all duration-200 flex items-center gap-2 ${
+            className="text-sm font-semibold px-[18px] py-[11px] rounded-[10px] border cursor-pointer transition-all duration-200"
+            style={
               copied
-                ? "bg-[var(--success)] text-[var(--bg)]"
-                : "bg-[var(--copper)] text-[var(--bg)] hover:opacity-85"
-            }`}
+                ? { background: "var(--accent)", color: "var(--on-accent)", borderColor: "var(--accent)" }
+                : { background: "var(--accent)", color: "var(--on-accent)", borderColor: "var(--accent)" }
+            }
           >
-            {copied ? "COPIED" : "COPY TO CLIPBOARD"}
+            {copied ? "✓  Copied to clipboard" : "Copy build prompt"}
           </button>
           <button
             onClick={() => { playTap(); onClose(); }}
-            className="font-label text-[10px] tracking-[0.06em] uppercase text-[var(--text-disabled)] bg-transparent border-none cursor-pointer px-4 py-3 transition-colors duration-200 hover:text-[var(--text-secondary)]"
+            className="text-sm font-semibold px-4 py-[11px] rounded-[10px] text-[var(--dim)] bg-transparent border border-[var(--border)] cursor-pointer transition-colors duration-200 hover:text-[var(--text)]"
           >
-            CLOSE
+            Close
           </button>
         </div>
       </div>
@@ -123,128 +134,137 @@ export function PromptModal({
   );
 }
 
-/** Glass card with inline expand detail */
-export function IdeaCardModal({ idea }: { idea: Idea }) {
+/** Idea card — gentle expand-in-place with inline detail + build prompt */
+export function IdeaCardModal({ idea, index, featured }: { idea: Idea; index?: number; featured?: boolean }) {
   const [active, setActive] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const prompt = generateClaudePrompt(idea);
 
-  const diff = difficultyConfig[idea.difficulty] || difficultyConfig.Weekend;
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(prompt).then(() => {
+      playClick(true);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
 
   function toggleCard(e: React.MouseEvent) {
-    // Don't toggle if clicking a button inside
-    if ((e.target as HTMLElement).closest("button")) return;
+    if ((e.target as HTMLElement).closest("button, a")) return;
     const isOpening = !active;
     playClick(isOpening);
     setActive(isOpening);
 
-    // Toggle has-active on parent grid
     const grid = (e.currentTarget as HTMLElement).closest(".grid-ideas");
     if (grid) {
       if (isOpening) {
         grid.classList.add("has-active");
       } else {
-        // Check if any other card is active
         const otherActives = grid.querySelectorAll(".glass-card.active");
         if (otherActives.length <= 1) grid.classList.remove("has-active");
       }
     }
   }
 
+  function handleKey(e: React.KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).click();
+    }
+  }
+
   return (
-    <>
-      <div
-        className={`glass-card ${active ? "active" : ""}`}
-        onClick={toggleCard}
-      >
-        {/* Top row — difficulty + potential dots */}
-        <div className="flex justify-between items-center mb-4">
-          <span className={`font-label text-[9px] tracking-[0.08em] uppercase px-2.5 py-1 rounded-full border ${diff.cssClass}`}>
-            {diff.label}
-          </span>
-          <div className="flex gap-[3px]">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
-                  i < idea.viral_potential ? "bg-[var(--copper)]" : "bg-[var(--text-disabled)]"
-                }`}
-              />
+    <div
+      className={`glass-card flex flex-col ${active ? "active" : ""} ${featured ? "featured" : ""}`}
+      style={{ gridColumn: active ? "1 / -1" : "auto" }}
+      onClick={toggleCard}
+      onKeyDown={handleKey}
+      role="button"
+      tabIndex={0}
+      aria-expanded={active}
+    >
+      {/* Top row — index + category/featured */}
+      <div className="flex items-center justify-between">
+        <span className="font-head text-lg text-[var(--mute)]">
+          {String((index ?? 0) + 1).padStart(2, "0")}
+        </span>
+        <span className="text-[11.5px] font-semibold tracking-[0.1em] uppercase text-[var(--accent)]">
+          {featured ? "Idea of the day" : idea.category}
+        </span>
+      </div>
+
+      {/* Name */}
+      <h3 className="card-name font-head text-[25px] text-[var(--text)] leading-[1.05] mt-4 transition-colors duration-300">
+        {idea.name}
+      </h3>
+
+      {/* Liner */}
+      <p className="text-[15px] text-[var(--dim)] leading-[1.5] mt-2.5">
+        {idea.one_liner}
+      </p>
+
+      {/* Footer — difficulty + viral + chevron */}
+      <div className="flex items-center justify-between mt-[22px] pt-[18px] border-t border-[var(--line)]">
+        <div className="flex items-center gap-4">
+          <DiffPill difficulty={idea.difficulty} />
+          <Viral n={idea.viral_potential} />
+        </div>
+        <span className="card-arrow flex text-[var(--mute)] transition-transform duration-[250ms]">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6l4 4 4-4" /></svg>
+        </span>
+      </div>
+
+      {/* Expandable detail */}
+      <div className="card-detail">
+        <div className="mt-[22px] pt-[22px] border-t border-[var(--line)]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              ["Pain point", idea.pain_point],
+              ["Who needs it", idea.target_audience],
+              ["Monetization", idea.monetization],
+            ].map(([k, v]) => (
+              <div key={k} className="panel-item">
+                <div className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[var(--mute)] mb-1.5">{k}</div>
+                <div className="text-sm text-[var(--text)] leading-[1.5]">{v}</div>
+              </div>
             ))}
           </div>
-        </div>
 
-        {/* Name */}
-        <div className="card-name text-xl font-medium text-[var(--text-display)] mb-2 leading-snug transition-colors duration-300">
-          {idea.name}
-        </div>
-
-        {/* Liner */}
-        <div className="text-sm text-[var(--text-secondary)] leading-relaxed mb-5">
-          {idea.one_liner}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-between items-center pt-4 border-t border-[rgba(255,255,255,0.06)]">
-          <span className="font-label text-[10px] tracking-[0.06em] uppercase text-[var(--text-disabled)]">
-            {platformLabel[idea.source_platform] || idea.source_platform}
-          </span>
-          <div className="card-arrow w-7 h-7 rounded-full border border-[rgba(255,255,255,0.06)] flex items-center justify-center text-[var(--text-disabled)] text-sm transition-all duration-300 cubic-bezier(0.25,0.1,0.25,1)">
-            &rarr;
-          </div>
-        </div>
-
-        {/* Expandable detail */}
-        <div className="card-detail">
-          <div className="pt-5 mt-5 border-t border-[rgba(255,255,255,0.06)]">
-            <div className="grid grid-cols-2 gap-4 mb-5">
-              <div className="panel-item flex flex-col gap-1">
-                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">PAIN POINT</span>
-                <span className="text-[13px] text-[var(--text-primary)] leading-relaxed">{idea.pain_point}</span>
-              </div>
-              <div className="panel-item flex flex-col gap-1">
-                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">AUDIENCE</span>
-                <span className="text-[13px] text-[var(--text-primary)] leading-relaxed">{idea.target_audience}</span>
-              </div>
-              <div className="panel-item flex flex-col gap-1">
-                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">MONETIZATION</span>
-                <span className="text-[13px] text-[var(--text-primary)] leading-relaxed">{idea.monetization}</span>
-              </div>
-              <div className="panel-item flex flex-col gap-1">
-                <span className="font-label text-[9px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">POTENTIAL</span>
-                <span className="text-[13px] text-[var(--copper)] leading-relaxed">{idea.viral_potential} / 5</span>
-              </div>
+          {/* Build prompt */}
+          <div className="panel-actions mt-6">
+            <div className="flex items-baseline justify-between gap-3.5 mb-2.5">
+              <span className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[var(--mute)] whitespace-nowrap">Build prompt</span>
             </div>
-            <div className="panel-actions flex gap-2.5">
+            <div className="prompt-box">{prompt}</div>
+            <div className="flex gap-2.5 mt-3.5">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playTap();
-                  setShowPrompt(true);
-                }}
-                className="font-label text-[10px] tracking-[0.06em] uppercase px-5 py-2.5 rounded-full bg-[var(--copper)] text-[var(--bg)] border-none cursor-pointer transition-all duration-200 hover:opacity-85"
+                onClick={handleCopy}
+                className="text-sm font-semibold px-[18px] py-2.5 rounded-[10px] cursor-pointer transition-all duration-200 border"
+                style={{ background: "var(--accent)", color: "var(--on-accent)", borderColor: "var(--accent)" }}
               >
-                GENERATE PROMPT
+                {copied ? "✓  Copied to clipboard" : "Copy build prompt"}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); playTap(); }}
+                className="text-sm font-semibold px-[18px] py-2.5 rounded-[10px] bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] cursor-pointer transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
+                Save
               </button>
               {idea.source_urls?.[0] && (
                 <a
                   href={idea.source_urls[0]}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playTap();
-                  }}
-                  className="font-label text-[10px] tracking-[0.06em] uppercase px-5 py-2.5 rounded-full bg-transparent text-[var(--text-primary)] border border-[var(--glass-border)] cursor-pointer transition-all duration-200 hover:border-[rgba(255,255,255,0.15)] inline-flex items-center"
+                  onClick={(e) => { e.stopPropagation(); playTap(); }}
+                  className="text-sm font-semibold px-[18px] py-2.5 rounded-[10px] bg-transparent text-[var(--dim)] border border-[var(--border)] cursor-pointer transition-all duration-200 hover:text-[var(--text)] inline-flex items-center"
                 >
-                  VIEW SOURCE
+                  View source
                 </a>
               )}
             </div>
           </div>
         </div>
       </div>
-
-      <PromptModal idea={idea} open={showPrompt} onClose={() => setShowPrompt(false)} />
-    </>
+    </div>
   );
 }

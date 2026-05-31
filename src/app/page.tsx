@@ -1,9 +1,7 @@
-import { getTodayIdeas, getAllIdeas, getAvailableDates } from "@/lib/queries";
+import { getTodayIdeas, getAllIdeas, getAvailableDates, getScanByDate } from "@/lib/queries";
 import { IdeaCard } from "@/components/ideas/idea-card";
-import { SpotlightCard } from "@/components/ideas/spotlight-card";
-import { MarqueeTicker } from "@/components/layout/marquee-ticker";
-import { ScannerRibbon } from "@/components/scanner-ribbon";
 import { ArchiveSection } from "@/components/archive-section";
+import { HeroCtas } from "@/components/hero-ctas";
 import Link from "next/link";
 
 export default async function Home() {
@@ -11,178 +9,120 @@ export default async function Home() {
   const allIdeas = await getAllIdeas();
   const dates = await getAvailableDates();
 
-  // Compute category counts
+  const today = new Date().toISOString().split("T")[0];
+  const scan = await getScanByDate(today);
+  const scanned = scan?.posts_analyzed ?? null;
+
+  const longDate = new Date(today + "T12:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Category counts
   const categoryCounts: Record<string, { count: number; ideas: string[] }> = {};
   for (const idea of allIdeas) {
-    if (!categoryCounts[idea.category]) {
-      categoryCounts[idea.category] = { count: 0, ideas: [] };
-    }
+    if (!categoryCounts[idea.category]) categoryCounts[idea.category] = { count: 0, ideas: [] };
     categoryCounts[idea.category].count++;
-    if (categoryCounts[idea.category].ideas.length < 3) {
-      categoryCounts[idea.category].ideas.push(idea.name);
-    }
+    if (categoryCounts[idea.category].ideas.length < 3) categoryCounts[idea.category].ideas.push(idea.name);
   }
-
-  const spotlight = todayIdeas[0];
 
   return (
     <div className="flex flex-col">
       {/* ── Hero ── */}
-      <section className="text-center px-6 sm:px-12 pt-24 pb-0 flex flex-col items-center">
-        {/* Eyebrow */}
-        <div className="font-label text-[11px] tracking-[0.12em] uppercase text-[var(--copper)] mb-8 flex items-center gap-3">
-          <span className="w-8 h-px bg-[var(--copper)] opacity-40" />
-          CURATED DAILY
-          <span className="w-8 h-px bg-[var(--copper)] opacity-40" />
+      <header className="mx-auto w-full max-w-[1080px] px-8 pt-[clamp(54px,9vw,100px)] pb-[clamp(36px,5vw,56px)]">
+        <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-5">
+          Today · {longDate}
         </div>
-
-        {/* Title */}
-        <h1 className="font-display text-6xl sm:text-[96px] font-normal text-[var(--text-display)] tracking-[-0.04em] leading-none mb-6">
-          SIDE <span className="text-[var(--copper)]">QUEST</span>
+        <h1 className="font-head text-[clamp(50px,9vw,98px)] leading-[0.98] text-[var(--text)] m-0">
+          SideQuest
         </h1>
-
-        {/* Subtitle */}
-        <p className="text-lg font-light text-[var(--text-secondary)] leading-relaxed max-w-[500px] mb-9">
+        <p className="text-[clamp(17px,2.2vw,21px)] leading-[1.55] text-[var(--dim)] max-w-[600px] mt-6">
           The internet&apos;s pain points, distilled into{" "}
-          <strong className="text-[var(--copper)] font-normal">10 buildable ideas</strong>{" "}
-          every morning. No noise. Just signal.
+          <em className="not-italic text-[var(--text)] font-semibold">ten buildable ideas</em>{" "}
+          every morning. No noise — just the signal worth building.
         </p>
-
-        {/* CTA buttons */}
-        <div className="flex gap-3 mb-12">
-          <a
-            href="#ideas"
-            className="font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3.5 rounded-full bg-[var(--copper)] text-[var(--bg)] cursor-pointer transition-all duration-200 hover:opacity-85 hover:-translate-y-px shadow-[0_4px_20px_rgba(196,149,106,0.15)] hover:shadow-[0_8px_32px_rgba(196,149,106,0.25)] inline-block"
-          >
-            TODAY&apos;S DROP &darr;
-          </a>
-          <a
-            href="#how"
-            className="font-label text-[11px] tracking-[0.06em] uppercase px-7 py-3.5 rounded-full bg-transparent text-[var(--text-primary)] border border-[var(--glass-border)] cursor-pointer transition-all duration-200 hover:border-[var(--copper)] hover:text-[var(--copper)] inline-block"
-          >
-            HOW IT WORKS
-          </a>
+        <HeroCtas />
+        <div className="mt-[26px] text-[13px] text-[var(--mute)]">
+          {scanned ? `${scanned.toLocaleString()} posts scanned overnight` : "Scanned overnight"} · {todayIdeas.length || 10} ideas survived the cut
         </div>
-
-        {/* Scanner ribbon */}
-        <ScannerRibbon ideasCount={todayIdeas.length} postsAnalyzed={847} />
-        {/* Scan sweep */}
-        <div className="w-full max-w-[900px] h-0.5 bg-[rgba(255,255,255,0.03)] rounded-[1px] overflow-hidden">
-          <div className="h-full w-0 bg-gradient-to-r from-transparent via-[var(--copper)] to-transparent" style={{ animation: "sweep 3s ease-in-out infinite" }} />
-        </div>
-      </section>
-
-      <div className="h-16" />
-
-      {/* ── Ticker ── */}
-      <MarqueeTicker ideas={todayIdeas} />
-
-      {/* ── Spotlight ── */}
-      {spotlight && (
-        <div className="mt-16">
-          <SpotlightCard idea={spotlight} />
-        </div>
-      )}
+      </header>
 
       {/* ── Ideas Grid ── */}
-      <div id="ideas" className="px-6 sm:px-12 py-16">
-        <div className="flex justify-between items-baseline mb-8">
-          <span className="font-label text-[10px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">
-            TODAY&apos;S IDEAS
-          </span>
-          <span className="font-label text-[11px] text-[var(--text-disabled)]">
-            {todayIdeas.length} AVAILABLE
-          </span>
+      <section id="ideas" className="mx-auto w-full max-w-[1080px] px-8 py-11">
+        <div className="flex items-end justify-between gap-5 flex-wrap mb-[34px]">
+          <div>
+            <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-2">
+              Today&apos;s drop
+            </div>
+            <h2 className="font-head text-[clamp(28px,4vw,40px)] leading-[1.05] text-[var(--text)] m-0">
+              Ten ideas worth building
+            </h2>
+          </div>
+          <span className="text-[13px] text-[var(--mute)]">Sorted by potential · tap to expand</span>
         </div>
 
         {todayIdeas.length > 0 ? (
-          <div className="grid-ideas grid grid-cols-1 sm:grid-cols-2 gap-8">
-            {todayIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} />
+          <div className="grid-ideas grid grid-cols-1 md:grid-cols-2 gap-[18px] items-start">
+            {todayIdeas.map((idea, i) => (
+              <IdeaCard key={idea.id} idea={idea} index={i} featured={i === 0} />
             ))}
           </div>
         ) : (
-          <div className="glass-card p-16 text-center cursor-default">
-            <p className="text-[var(--text-secondary)]">
-              No ideas distilled yet today. Check back soon.
-            </p>
+          <div className="glass-card cursor-default text-center py-16">
+            <p className="text-[var(--dim)]">No ideas distilled yet today. Check back in the morning.</p>
           </div>
         )}
-      </div>
+      </section>
 
       {/* ── Categories ── */}
-      <div id="categories" className="px-6 sm:px-12 py-24 border-t border-[rgba(255,255,255,0.06)]">
-        <div className="flex justify-between items-baseline mb-8">
-          <span className="font-label text-[10px] tracking-[0.1em] uppercase text-[var(--text-secondary)]">
-            CATEGORIES
-          </span>
-          <span className="font-label text-[11px] text-[var(--text-disabled)]">
-            {Object.keys(categoryCounts).length} CATEGORIES
-          </span>
+      <section id="categories" className="mx-auto w-full max-w-[1080px] px-8 py-11 border-t border-[var(--line)]">
+        <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-2">
+          Browse
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <h2 className="font-head text-[clamp(28px,4vw,40px)] leading-[1.05] text-[var(--text)] m-0 mb-[34px]">
+          By category
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
           {Object.entries(categoryCounts).map(([cat, data]) => (
-            <Link
-              key={cat}
-              href={`/ideas?category=${encodeURIComponent(cat)}`}
-              className="glass-card hover:cursor-pointer block"
-            >
-              <div className="font-display text-[42px] text-[var(--text-display)] leading-none mb-2.5 tracking-[-0.02em]">
-                {data.count}
-              </div>
-              <div className="font-label text-xs tracking-[0.08em] uppercase text-[var(--text-secondary)] mb-4 transition-colors duration-200 group-hover:text-[var(--copper)]">
-                {cat}
-              </div>
-              <div className="flex flex-col gap-2 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+            <Link key={cat} href={`/ideas?category=${encodeURIComponent(cat)}`} className="glass-card block">
+              <div className="font-head text-[42px] text-[var(--text)] leading-none mb-2.5">{data.count}</div>
+              <div className="text-xs font-semibold tracking-[0.1em] uppercase text-[var(--accent)] mb-4">{cat}</div>
+              <div className="flex flex-col gap-2 pt-4 border-t border-[var(--line)]">
                 {data.ideas.map((name) => (
-                  <span key={name} className="text-sm text-[var(--text-disabled)]">{name}</span>
+                  <span key={name} className="text-sm text-[var(--mute)]">{name}</span>
                 ))}
               </div>
             </Link>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* ── Archive ── */}
       <ArchiveSection dates={dates} />
 
       {/* ── How It Works ── */}
-      <div id="how" className="px-6 sm:px-12 py-24 border-t border-[rgba(255,255,255,0.06)]">
-        <div className="font-label text-[10px] tracking-[0.12em] uppercase text-[var(--text-secondary)] mb-12 text-center">
-          HOW IT WORKS
+      <section id="how" className="mx-auto w-full max-w-[1080px] px-8 py-11 border-t border-[var(--line)]">
+        <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-2">
+          The pipeline
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-[900px] mx-auto">
+        <h2 className="font-head text-[clamp(28px,4vw,40px)] leading-[1.05] text-[var(--text)] m-0">
+          How it works
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-9 mt-7">
           {[
-            {
-              num: "01",
-              title: "Scan the noise",
-              desc: "Bots sweep Reddit, HN, and Product Hunt overnight for complaints and unmet needs.",
-            },
-            {
-              num: "02",
-              title: "Distill the signal",
-              desc: "AI reduces hundreds of posts to 10 actionable ideas with full context.",
-            },
-            {
-              num: "03",
-              title: "Pick and ship",
-              desc: "Generate a build prompt, open your editor, and start building.",
-            },
+            { n: "01", t: "Scan the noise", d: "Every night we crawl Reddit, Hacker News and Product Hunt for what people are actually complaining about." },
+            { n: "02", t: "Distill the signal", d: "AI clusters the gripes, sets aside the noise, and shapes the ten most buildable into real product ideas." },
+            { n: "03", t: "Pick and ship", d: "Open any idea for the pain point, audience and pricing — then copy a build prompt straight into your editor." },
           ].map((step) => (
-            <div key={step.num} className="glass-card text-center cursor-default p-8">
-              <div className="font-display text-[42px] text-[var(--copper)] leading-none mb-4">
-                {step.num}
-              </div>
-              <div className="text-base font-medium text-[var(--text-display)] mb-2">
-                {step.title}
-              </div>
-              <div className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
-                {step.desc}
-              </div>
+            <div key={step.n}>
+              <div className="font-head text-[34px] text-[var(--accent)]">{step.n}</div>
+              <h3 className="font-head text-xl text-[var(--text)] mt-3 mb-2">{step.t}</h3>
+              <p className="text-sm text-[var(--dim)] leading-[1.6] m-0">{step.d}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

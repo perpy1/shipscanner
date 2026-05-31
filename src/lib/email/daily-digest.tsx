@@ -1,10 +1,36 @@
 import { Idea } from "@/types";
 
-const difficultyQuest: Record<string, string> = {
-  Weekend: "⚔️ WEEKEND QUEST",
-  Week: "🗡️ WEEK-LONG RAID",
-  Month: "🐉 EPIC CAMPAIGN",
+// Nocturne palette (email-safe inline styles)
+const C = {
+  bg: "#14161B",
+  card: "#1A1D24",
+  surface: "#1B1E26",
+  border: "rgba(255,255,255,0.09)",
+  line: "rgba(255,255,255,0.06)",
+  text: "#ECEAE4",
+  dim: "#9DA0A8",
+  mute: "#6B6E76",
+  accent: "#2FA89B",
+  weekend: "#6FCF97",
+  week: "#E0B15B",
+  month: "#E07A8B",
 };
+
+const diffColor: Record<string, string> = {
+  Weekend: C.weekend,
+  Week: C.week,
+  Month: C.month,
+};
+
+// Build prompt potential as filled/empty dots (email-safe, no icons)
+function viralDots(n: number): string {
+  return Array.from({ length: 5 })
+    .map(
+      (_, i) =>
+        `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${i < n ? C.accent : C.line};margin-left:3px;"></span>`
+    )
+    .join("");
+}
 
 // Simple HTML email template (no React Email dependency needed for MVP)
 export function buildDigestHtml(ideas: Idea[], date: string): string {
@@ -16,20 +42,22 @@ export function buildDigestHtml(ideas: Idea[], date: string): string {
 
   const ideaCards = ideas
     .map(
-      (idea) => `
-    <div style="background: #1c1c1c; border: 2px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-      <div style="margin-bottom: 12px;">
-        <span style="background: #f59e0b; color: #000; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">${difficultyQuest[idea.difficulty] ?? idea.difficulty}</span>
-        <span style="background: #2a2a2a; color: #999; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 4px;">${idea.category}</span>
-        <span style="float: right; color: #f97316;">${"🔥".repeat(idea.viral_potential)}</span>
+      (idea, i) => `
+    <div style="background:${C.card};border:1px solid ${C.border};border-radius:14px;padding:22px 24px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span style="font-size:13px;color:${C.mute};font-weight:600;">${String(i + 1).padStart(2, "0")}</span>
+        <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.accent};">${i === 0 ? "Idea of the day" : idea.category}</span>
       </div>
-      <h2 style="color: #f59e0b; margin: 8px 0 4px; font-size: 18px; font-family: monospace;">${idea.name}</h2>
-      <p style="color: #ddd; margin: 0 0 12px; font-size: 14px;">${idea.one_liner}</p>
-      <p style="color: #888; margin: 0 0 16px; font-size: 13px;">${idea.description}</p>
-      <div style="background: #222; border-radius: 8px; padding: 12px; font-size: 12px; color: #888;">
-        <div style="margin-bottom: 8px;"><span style="color: #f59e0b; font-weight: bold; font-size: 10px; letter-spacing: 1px;">⚡ THE PROBLEM</span><br/><span style="color: #ccc;">${idea.pain_point}</span></div>
-        <div style="margin-bottom: 8px;"><span style="color: #06b6d4; font-weight: bold; font-size: 10px; letter-spacing: 1px;">🎯 WHO NEEDS IT</span><br/><span style="color: #ccc;">${idea.target_audience}</span></div>
-        <div><span style="color: #10b981; font-weight: bold; font-size: 10px; letter-spacing: 1px;">💰 GOLD POTENTIAL</span><br/><span style="color: #ccc;">${idea.monetization}</span></div>
+      <h2 style="color:${C.text};margin:0 0 6px;font-size:21px;font-family:Georgia,'Times New Roman',serif;font-weight:400;">${idea.name}</h2>
+      <p style="color:${C.dim};margin:0 0 16px;font-size:14px;line-height:1.5;">${idea.one_liner}</p>
+      <div style="margin-bottom:16px;">
+        <span style="font-size:12px;font-weight:600;color:${diffColor[idea.difficulty] ?? C.dim};">● ${idea.difficulty}</span>
+        <span style="float:right;">${viralDots(idea.viral_potential)}</span>
+      </div>
+      <div style="background:${C.bg};border:1px solid ${C.line};border-radius:10px;padding:14px 16px;font-size:12.5px;color:${C.dim};line-height:1.55;">
+        <div style="margin-bottom:10px;"><span style="color:${C.mute};font-weight:600;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Pain point</span><br/><span style="color:${C.text};">${idea.pain_point}</span></div>
+        <div style="margin-bottom:10px;"><span style="color:${C.mute};font-weight:600;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Who needs it</span><br/><span style="color:${C.text};">${idea.target_audience}</span></div>
+        <div><span style="color:${C.mute};font-weight:600;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Monetization</span><br/><span style="color:${C.text};">${idea.monetization}</span></div>
       </div>
     </div>
   `
@@ -39,28 +67,22 @@ export function buildDigestHtml(ideas: Idea[], date: string): string {
   return `
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"></head>
-<body style="background: #0a0a0a; color: #ededed; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 32px 16px; margin: 0;">
-  <div style="max-width: 600px; margin: 0 auto;">
-    <div style="text-align: center; margin-bottom: 32px;">
-      <h1 style="color: #fff; font-size: 24px; margin: 0;">
-        📜 Side<span style="color: #f97316;">Quest</span>
-      </h1>
-      <p style="color: #f59e0b; font-size: 16px; font-weight: bold; margin: 12px 0 4px; letter-spacing: 1px;">📦 DAILY LOOT DROP</p>
-      <p style="color: #888; font-size: 13px; margin: 0;">${formatted} — ${ideas.length} quests available</p>
-    </div>
-
-    <div style="background: #1a1a2e; border: 1px solid #f59e0b30; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: center;">
-      <p style="color: #f59e0b; font-size: 12px; margin: 0; letter-spacing: 0.5px;">🗡️ QUEST AVAILABLE — Open your editor and start building</p>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="background:${C.bg};color:${C.text};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:32px 16px;margin:0;">
+  <div style="max-width:600px;margin:0 auto;">
+    <div style="margin-bottom:32px;">
+      <p style="color:${C.accent};font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 12px;">Today · ${formatted}</p>
+      <h1 style="color:${C.text};font-size:32px;margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;">SideQuest</h1>
+      <p style="color:${C.dim};font-size:14px;margin:10px 0 0;line-height:1.5;">${ideas.length} buildable ideas, distilled from the internet's pain points overnight. No noise — just the signal worth building.</p>
     </div>
 
     ${ideaCards}
 
-    <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid #222;">
-      <p style="color: #666; font-size: 12px;">
-        You're getting this because you subscribed to SideQuest daily ideas.
+    <div style="text-align:center;margin-top:24px;padding-top:24px;border-top:1px solid ${C.line};">
+      <p style="color:${C.mute};font-size:12px;line-height:1.6;">
+        No signup · saves locally · a new drop every morning.
         <br/>
-        <a href="%unsubscribe_url%" style="color: #f97316;">Unsubscribe</a>
+        <a href="%unsubscribe_url%" style="color:${C.accent};">Unsubscribe</a>
       </p>
     </div>
   </div>

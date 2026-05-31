@@ -1,7 +1,5 @@
 import { getAllIdeas } from "@/lib/queries";
 import { IdeaCard } from "@/components/ideas/idea-card";
-import { Badge } from "@/components/ui/badge";
-import { Bookmark, Sparkles, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -13,67 +11,60 @@ export const metadata: Metadata = {
 export default async function DashboardPage() {
   const allIdeas = await getAllIdeas({ sort: "viral" });
   const topIdeas = allIdeas.slice(0, 6);
+  const topViral = allIdeas.length > 0 ? Math.max(...allIdeas.map((i) => i.viral_potential)) : 0;
+
+  const stats = [
+    { label: "Ideas generated", value: String(allIdeas.length) },
+    { label: "Top potential", value: `${topViral}/5` },
+    { label: "Saved ideas", value: "0", hint: "Tap Save on any idea" },
+  ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="mb-8">
-        <p className="font-pixel text-[10px] text-amber-400 mb-2">
-          YOUR HQ
-        </p>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Your saved ideas and top picks
-        </p>
+    <div className="mx-auto w-full max-w-[1080px] px-8 py-12">
+      <div className="mb-10">
+        <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-2">
+          Your HQ
+        </div>
+        <h1 className="font-head text-[clamp(28px,4vw,40px)] leading-[1.05] text-[var(--text)] m-0">
+          Dashboard
+        </h1>
+        <p className="mt-2 text-sm text-[var(--dim)]">Your saved ideas and top picks.</p>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-10">
-        <div className="pixel-border rounded-lg bg-card p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="size-4 text-amber-400" />
-            <span className="font-pixel text-[9px] text-muted-foreground">IDEAS GENERATED</span>
+      <div className="grid gap-[18px] sm:grid-cols-3 mb-12">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius)] p-6 shadow-[var(--shadow)]">
+            <div className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[var(--mute)] mb-3">{s.label}</div>
+            <div className="font-head text-[40px] leading-none text-[var(--text)]">{s.value}</div>
+            {s.hint && <div className="text-xs text-[var(--mute)] mt-2">{s.hint}</div>}
           </div>
-          <p className="text-3xl font-bold">{allIdeas.length}</p>
-        </div>
-        <div className="pixel-border rounded-lg bg-card p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="size-4 text-cyan-400" />
-            <span className="font-pixel text-[9px] text-muted-foreground">TOP VIRAL SCORE</span>
-          </div>
-          <p className="text-3xl font-bold">
-            {allIdeas.length > 0 ? Math.max(...allIdeas.map(i => i.viral_potential)) : 0}/5
-          </p>
-        </div>
-        <div className="pixel-border rounded-lg bg-card p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <Bookmark className="size-4 text-emerald-400" />
-            <span className="font-pixel text-[9px] text-muted-foreground">SAVED IDEAS</span>
-          </div>
-          <p className="text-3xl font-bold">0</p>
-          <p className="text-xs text-muted-foreground mt-1">Click the bookmark on any card</p>
-        </div>
+        ))}
       </div>
 
       {/* Top Ideas */}
       <section>
-        <div className="mb-6 flex items-center gap-2">
-          <TrendingUp className="size-5 text-amber-400" />
-          <h2 className="text-xl font-semibold">Most Viral Ideas</h2>
-          <Badge variant="secondary" className="font-mono text-xs">{topIdeas.length}</Badge>
+        <div className="flex items-end justify-between gap-5 flex-wrap mb-[34px]">
+          <div>
+            <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-2">
+              Highest potential
+            </div>
+            <h2 className="font-head text-[clamp(24px,3.5vw,34px)] leading-[1.05] text-[var(--text)] m-0">
+              Most viral ideas
+            </h2>
+          </div>
+          <span className="text-[13px] text-[var(--mute)]">{topIdeas.length} shown</span>
         </div>
 
         {topIdeas.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {topIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} />
+          <div className="grid-ideas grid gap-[18px] sm:grid-cols-2 items-start">
+            {topIdeas.map((idea, i) => (
+              <IdeaCard key={idea.id} idea={idea} index={i} />
             ))}
           </div>
         ) : (
-          <div className="pixel-border rounded-lg bg-card p-12 text-center">
-            <Bookmark className="mx-auto mb-3 size-8 text-muted-foreground/40" />
-            <p className="text-muted-foreground">
-              No ideas yet. Run a scan first!
-            </p>
+          <div className="glass-card cursor-default text-center py-12">
+            <p className="text-[var(--dim)]">No ideas yet. The next scan runs overnight.</p>
           </div>
         )}
       </section>

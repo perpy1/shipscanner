@@ -42,10 +42,10 @@ export function IdeaFilters() {
     return (
       <button
         onClick={onClick}
-        className={`font-label text-[10px] tracking-[0.08em] uppercase px-4 py-2 rounded-full border cursor-pointer transition-all duration-200 ${
+        className={`text-[11.5px] font-semibold px-4 py-2 rounded-full border cursor-pointer transition-all duration-200 ${
           active
-            ? "text-[var(--copper)] bg-[rgba(196,149,106,0.1)] border-[rgba(196,149,106,0.3)]"
-            : "text-[var(--text-disabled)] bg-transparent border-[var(--glass-border)] hover:text-[var(--text-primary)] hover:border-[rgba(255,255,255,0.15)]"
+            ? "text-[var(--accent)] bg-[var(--accent-soft)] border-[color-mix(in_srgb,var(--accent)_45%,transparent)]"
+            : "text-[var(--dim)] bg-transparent border-[var(--border)] hover:text-[var(--text)] hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))]"
         }`}
       >
         {children}
