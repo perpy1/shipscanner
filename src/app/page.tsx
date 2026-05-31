@@ -3,6 +3,7 @@ import { IdeaCard } from "@/components/ideas/idea-card";
 import { ArchiveSection } from "@/components/archive-section";
 import { HeroCtas } from "@/components/hero-ctas";
 import { SubscribeForm } from "@/components/subscribe-form";
+import { SUBSTACK_URL } from "@/lib/substack";
 import Link from "next/link";
 
 export default async function Home() {
@@ -71,8 +72,7 @@ export default async function Home() {
           </div>
         ) : (
           <div className="glass-card cursor-default text-center py-16">
-            <p className="text-[var(--dim)] mb-6">No ideas distilled yet today — the next drop lands in the morning.</p>
-            <div className="flex justify-center"><SubscribeForm compact /></div>
+            <p className="text-[var(--dim)]">No ideas distilled yet today — check back in the morning.</p>
           </div>
         )}
       </section>
@@ -91,8 +91,8 @@ export default async function Home() {
               <div className="font-head text-[42px] text-[var(--text)] leading-none mb-2.5">{data.count}</div>
               <div className="text-xs font-semibold tracking-[0.1em] uppercase text-[var(--accent)] mb-4">{cat}</div>
               <div className="flex flex-col gap-2 pt-4 border-t border-[var(--line)]">
-                {data.ideas.map((name) => (
-                  <span key={name} className="text-sm text-[var(--mute)]">{name}</span>
+                {data.ideas.map((name, i) => (
+                  <span key={`${cat}-${i}`} className="text-sm text-[var(--mute)]">{name}</span>
                 ))}
               </div>
             </Link>
@@ -103,21 +103,30 @@ export default async function Home() {
       {/* ── Archive ── */}
       <ArchiveSection dates={dates} />
 
-      {/* ── Subscribe ── */}
+      {/* ── Newsletter (Substack) ── */}
       <section className="mx-auto w-full max-w-[1080px] px-8 py-11 border-t border-[var(--line)]">
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow)] p-8 sm:p-12 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-          <div className="max-w-[460px]">
+          <div className="max-w-[520px]">
             <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-2">
-              Every morning
+              The newsletter
             </div>
             <h2 className="font-head text-[clamp(24px,3.5vw,34px)] leading-[1.1] text-[var(--text)] m-0 mb-2">
-              Ten ideas in your inbox
+              Build the idea. Then grow it.
             </h2>
-            <p className="text-[15px] text-[var(--dim)] leading-[1.55] m-0">
-              One quiet email a day with the drop. No account, unsubscribe anytime.
+            <p className="text-[15px] text-[var(--dim)] leading-[1.55] m-0 mb-4">
+              SideQuest shows you what to build. The newsletter shows you how to market it —
+              creator growth, content systems, and AI automations that actually ship.
             </p>
+            <SubscribeForm />
+            <a
+              href={SUBSTACK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-3.5 text-[13px] font-semibold text-[var(--dim)] hover:text-[var(--accent)] transition-colors"
+            >
+              Read past issues on Substack →
+            </a>
           </div>
-          <SubscribeForm />
         </div>
       </section>
 

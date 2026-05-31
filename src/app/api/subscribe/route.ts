@@ -1,47 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// ── Your Substack ──
+// Subscribers are added directly to this publication. Change the handle here
+// (or set SUBSTACK_DOMAIN in the env) if the newsletter ever moves.
+const SUBSTACK_DOMAIN = process.env.SUBSTACK_DOMAIN || "gabevibes.substack.com";
+
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
 
-    if (!email || typeof email !== "string") {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email address" },
-        { status: 400 }
-      );
+    if (!email || typeof email !== "string" || !emailRegex.test(email)) {
+      return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 });
     }
 
-    // Use Supabase if configured, otherwise succeed silently
-    if (
-      process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    ) {
-      const { createAdminClient } = await import("@/lib/supabase/admin");
-      const supabase = createAdminClient();
+    // Forward to Substack's free-subscribe endpoint (server-side to avoid CORS).
+    const res = await fetch(`https://${SUBSTACK_DOMAIN}/api/v1/free`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        first_url: `https://${SUBSTACK_DOMAIN}/subscribe`,
+        first_referrer: "https://sidequest-gray.vercel.app",
+        current_url: `https://${SUBSTACK_DOMAIN}/subscribe`,
+        source: "embed",
+        domain: SUBSTACK_DOMAIN,
+      }),
+    });
 
-      const { error } = await supabase
-        .from("email_subscribers")
-        .upsert({ email, is_active: true }, { onConflict: "email" });
-
-      if (error) {
-        console.error("Subscribe error:", error);
-        return NextResponse.json(
-          { error: "Failed to subscribe" },
-          { status: 500 }
-        );
-      }
+    if (!res.ok) {
+      console.error("Substack subscribe failed:", res.status, await res.text().catch(() => ""));
+      return NextResponse.json({ error: "Subscription failed — try again in a moment." }, { status: 502 });
     }
 
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

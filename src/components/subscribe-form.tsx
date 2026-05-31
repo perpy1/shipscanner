@@ -20,14 +20,14 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
       });
 
       if (res.ok) {
-        toast.success("You're in. Tomorrow's drop lands in your inbox.");
+        toast.success("You're in — check your inbox to confirm.");
         setEmail("");
       } else {
         const data = await res.json();
         toast.error(data.error || "Something went wrong");
       }
     } catch {
-      toast.error("Failed to join. Try again.");
+      toast.error("Failed to subscribe. Try again.");
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
         className="text-[15px] font-semibold px-5 py-3 rounded-[10px] cursor-pointer transition-all duration-200 disabled:opacity-60 whitespace-nowrap"
         style={{ background: "var(--accent)", color: "var(--on-accent)" }}
       >
-        {loading ? "Joining…" : "Get the drop"}
+        {loading ? "Subscribing…" : "Subscribe"}
       </button>
     </form>
   );
