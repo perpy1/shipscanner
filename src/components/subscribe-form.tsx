@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Send } from "lucide-react";
 
-export function SubscribeForm() {
+export function SubscribeForm({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +20,7 @@ export function SubscribeForm() {
       });
 
       if (res.ok) {
-        toast.success("Quest accepted! Check your inbox tomorrow.");
+        toast.success("You're in. Tomorrow's drop lands in your inbox.");
         setEmail("");
       } else {
         const data = await res.json();
@@ -37,23 +34,24 @@ export function SubscribeForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-2">
-      <Input
+    <form onSubmit={handleSubmit} className={`flex w-full gap-2.5 ${compact ? "max-w-md" : "max-w-[460px]"}`}>
+      <input
         type="email"
-        placeholder="your@email.com"
+        placeholder="you@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 border-2 border-border bg-secondary px-4 placeholder:text-muted-foreground/40 focus:border-amber-500/60"
         required
+        aria-label="Email address"
+        className="flex-1 text-[15px] px-4 py-3 rounded-[10px] bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] placeholder:text-[var(--mute)] outline-none transition-colors duration-200 focus:border-[var(--accent)]"
       />
-      <Button
+      <button
         type="submit"
         disabled={loading}
-        className="bg-amber-500 text-black font-bold hover:bg-amber-400 border-0 px-5"
+        className="text-[15px] font-semibold px-5 py-3 rounded-[10px] cursor-pointer transition-all duration-200 disabled:opacity-60 whitespace-nowrap"
+        style={{ background: "var(--accent)", color: "var(--on-accent)" }}
       >
-        {loading ? "Joining..." : "Join"}
-        {!loading && <Send className="ml-1.5 size-3.5" />}
-      </Button>
+        {loading ? "Joining…" : "Get the drop"}
+      </button>
     </form>
   );
 }

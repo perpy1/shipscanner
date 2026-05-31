@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import { Idea } from "@/types";
 import { playClick, playTap } from "@/lib/sounds";
 import { generateClaudePrompt } from "@/lib/generate-prompt";
+import { useSavedIdeas } from "@/lib/use-saved-ideas";
+import { SocialCard } from "./social-card";
 
 const difficultyConfig: Record<string, { label: string; cssVar: string }> = {
   Weekend: { label: "Weekend", cssVar: "var(--diff-weekend)" },
@@ -138,6 +140,9 @@ export function PromptModal({
 export function IdeaCardModal({ idea, index, featured }: { idea: Idea; index?: number; featured?: boolean }) {
   const [active, setActive] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const { isSaved, toggle } = useSavedIdeas();
+  const saved = isSaved(idea.id);
   const prompt = generateClaudePrompt(idea);
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -174,6 +179,7 @@ export function IdeaCardModal({ idea, index, featured }: { idea: Idea; index?: n
   }
 
   return (
+    <>
     <div
       className={`glass-card flex flex-col ${active ? "active" : ""} ${featured ? "featured" : ""}`}
       style={{ gridColumn: active ? "1 / -1" : "auto" }}
@@ -245,10 +251,22 @@ export function IdeaCardModal({ idea, index, featured }: { idea: Idea; index?: n
                 {copied ? "✓  Copied to clipboard" : "Copy build prompt"}
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); playTap(); }}
+                onClick={(e) => { e.stopPropagation(); playTap(); toggle(idea.id); }}
+                aria-pressed={saved}
+                className="text-sm font-semibold px-[18px] py-2.5 rounded-[10px] cursor-pointer transition-all duration-200 border"
+                style={
+                  saved
+                    ? { background: "var(--accent-soft)", color: "var(--accent)", borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)" }
+                    : { background: "var(--surface)", color: "var(--text)", borderColor: "var(--border)" }
+                }
+              >
+                {saved ? "✓ Saved" : "Save"}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); playTap(); setShowShare(true); }}
                 className="text-sm font-semibold px-[18px] py-2.5 rounded-[10px] bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] cursor-pointer transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]"
               >
-                Save
+                Share
               </button>
               {idea.source_urls?.[0] && (
                 <a
@@ -266,5 +284,7 @@ export function IdeaCardModal({ idea, index, featured }: { idea: Idea; index?: n
         </div>
       </div>
     </div>
+    <SocialCard idea={idea} open={showShare} onClose={() => setShowShare(false)} />
+    </>
   );
 }

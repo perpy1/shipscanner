@@ -2,6 +2,7 @@ import { getTodayIdeas, getAllIdeas, getAvailableDates, getScanByDate } from "@/
 import { IdeaCard } from "@/components/ideas/idea-card";
 import { ArchiveSection } from "@/components/archive-section";
 import { HeroCtas } from "@/components/hero-ctas";
+import { SubscribeForm } from "@/components/subscribe-form";
 import Link from "next/link";
 
 export default async function Home() {
@@ -70,7 +71,8 @@ export default async function Home() {
           </div>
         ) : (
           <div className="glass-card cursor-default text-center py-16">
-            <p className="text-[var(--dim)]">No ideas distilled yet today. Check back in the morning.</p>
+            <p className="text-[var(--dim)] mb-6">No ideas distilled yet today — the next drop lands in the morning.</p>
+            <div className="flex justify-center"><SubscribeForm compact /></div>
           </div>
         )}
       </section>
@@ -100,6 +102,24 @@ export default async function Home() {
 
       {/* ── Archive ── */}
       <ArchiveSection dates={dates} />
+
+      {/* ── Subscribe ── */}
+      <section className="mx-auto w-full max-w-[1080px] px-8 py-11 border-t border-[var(--line)]">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow)] p-8 sm:p-12 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+          <div className="max-w-[460px]">
+            <div className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--accent)] mb-2">
+              Every morning
+            </div>
+            <h2 className="font-head text-[clamp(24px,3.5vw,34px)] leading-[1.1] text-[var(--text)] m-0 mb-2">
+              Ten ideas in your inbox
+            </h2>
+            <p className="text-[15px] text-[var(--dim)] leading-[1.55] m-0">
+              One quiet email a day with the drop. No account, unsubscribe anytime.
+            </p>
+          </div>
+          <SubscribeForm />
+        </div>
+      </section>
 
       {/* ── How It Works ── */}
       <section id="how" className="mx-auto w-full max-w-[1080px] px-8 py-11 border-t border-[var(--line)]">
