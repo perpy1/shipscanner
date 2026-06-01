@@ -41,7 +41,10 @@ export async function scrapeReddit(): Promise<ScrapedPost[]> {
         }
       );
 
-      if (!res.ok) continue;
+      if (!res.ok) {
+        console.warn(`[scrape] reddit r/${subreddit}: HTTP ${res.status} (likely blocked — needs OAuth)`);
+        continue;
+      }
 
       const data = await res.json();
       const children = data?.data?.children ?? [];
@@ -67,9 +70,10 @@ export async function scrapeReddit(): Promise<ScrapedPost[]> {
         }
       }
     } catch (err) {
-      console.error(`Failed to scrape r/${subreddit}:`, err);
+      console.error(`[scrape] reddit r/${subreddit}: failed`, err);
     }
   }
 
+  console.log(`[scrape] reddit: ${posts.length} posts`);
   return posts;
 }

@@ -31,9 +31,10 @@ export async function scrapeHackerNews(): Promise<ScrapedPost[]> {
         });
       }
     } catch (err) {
-      console.error(`Failed to scrape HN for "${query}":`, err);
+      console.error(`[scrape] hackernews "${query}": failed`, err);
     }
   }
 
+  console.log(`[scrape] hackernews: ${posts.length} posts`);
   return posts;
 }

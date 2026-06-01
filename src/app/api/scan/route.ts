@@ -11,10 +11,10 @@ function verifyAuth(request: NextRequest): boolean {
 
 async function runScan() {
   // 1. Scrape all sources
-  const { posts, sourcesScraped } = await scrapeAll();
+  const { posts, sourcesScraped, breakdown } = await scrapeAll();
 
   if (posts.length === 0) {
-    return NextResponse.json({ success: false, error: "No posts scraped" });
+    return NextResponse.json({ success: false, error: "No posts scraped", source_breakdown: breakdown });
   }
 
   // 2. Analyze with AI
@@ -56,6 +56,7 @@ async function runScan() {
     scan_date: today,
     posts_analyzed: posts.length,
     sources_scraped: sourcesScraped,
+    source_breakdown: breakdown,
     ideas_count: insertedIdeas?.length ?? 0,
   });
 }
