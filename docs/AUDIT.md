@@ -35,6 +35,18 @@ These components already exist in the repo and are imported **nowhere**. The fix
 
 ---
 
+## 🟠 Data sources — audited live (2 of 3 were dead)
+
+The pipeline advertised "Reddit + Hacker News + Product Hunt" but live-testing the endpoints showed it was effectively **HN-only**:
+
+| Source | Status | Notes |
+|---|---|---|
+| **Hacker News** | ✅ working | HN Algolia API, ~8k+ hits available |
+| **Reddit** | ❌ 403 blocked | `.json` endpoint refuses datacenter IPs; was failing **silently**. Needs OAuth API (`REDDIT_CLIENT_ID/SECRET`) — not yet done. |
+| **Product Hunt** | ⚠️ now built | Was a stub returning `[]`. Implemented via GraphQL — **requires `PRODUCTHUNT_TOKEN`** to actually return data. |
+
+**Done this cycle:** Product Hunt GraphQL scraper implemented; per-source **failure logging** added (`scrapeAll` logs a breakdown + names DEAD sources; scan response includes `source_breakdown`). **Still open:** Reddit OAuth (so Reddit stops being dead), and setting `PRODUCTHUNT_TOKEN`. Until both, ideas are HN-only — and site copy still claims all three sources.
+
 ## 🟠 Trust & data integrity (the live dashboard is partly fake)
 
 The hero "live scanner" (`src/components/scanner-ribbon.tsx`) — meant to build credibility — shows hardcoded/inaccurate numbers:

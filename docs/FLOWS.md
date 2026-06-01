@@ -15,12 +15,12 @@ Runs twice a day via Vercel Cron (`vercel.json`): **13:00 UTC** and **23:00 UTC*
        ▼
 ┌──────────────────────────────────────────────┐
 │ 1. SCRAPE   src/lib/scrapers/                 │
-│    • Reddit  — r/SaaS, SideProject,           │
-│      Entrepreneur, startups, programming,     │
-│      webdev  (filtered by "pain" keywords)    │
-│    • Hacker News                              │
-│    • Product Hunt                             │
+│    • Hacker News  ✅ working (Algolia API)    │
+│    • Reddit       ⚠️ 403-blocked → 0 posts    │
+│      (needs OAuth; r/SaaS, SideProject, …)    │
+│    • Product Hunt  needs PRODUCTHUNT_TOKEN     │
 │    → dedupe by URL, sort by score             │
+│    → logs per-source breakdown (names DEAD)   │
 └──────┬───────────────────────────────────────┘
        ▼
 ┌──────────────────────────────────────────────┐

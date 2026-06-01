@@ -97,7 +97,13 @@ runScan():
   5. return JSON summary
 ```
 
-**Scrapers** (`src/lib/scrapers/`): run in parallel via `Promise.allSettled`, so one source failing doesn't kill the run. Reddit pulls `hot.json` from r/SaaS, SideProject, Entrepreneur, startups, programming, webdev and keeps only posts matching pain-signal keywords ("frustrated", "wish there was", "would pay for", …). Results deduped by URL, sorted by score.
+**Scrapers** (`src/lib/scrapers/`): run in parallel via `Promise.allSettled`, so one source failing doesn't kill the run. `scrapeAll` returns a per-source `breakdown` and logs a summary that names any DEAD source (0 posts). Results deduped by URL, sorted by score.
+
+- **Hacker News** (`hackernews.ts`) — ✅ working. HN Algolia API; queries "Ask HN", "Show HN", "looking for", "wish there was".
+- **Reddit** (`reddit.ts`) — ⚠️ **blocked**. Pulls `hot.json` from r/SaaS, SideProject, Entrepreneur, startups, programming, webdev, filtered by pain keywords ("frustrated", "would pay for", …). Reddit 403s the unauthenticated `.json` endpoint from datacenter IPs; currently returns 0. **Needs the official OAuth API to work** (not yet implemented).
+- **Product Hunt** (`producthunt.ts`) — official GraphQL API (top recent launches by votes). **Requires `PRODUCTHUNT_TOKEN`**; returns 0 and logs a skip if unset.
+
+> Net: until Reddit OAuth is added and `PRODUCTHUNT_TOKEN` is set, the pipeline is **HN-only**. The summary log + `source_breakdown` in the scan response make this visible.
 
 **AI** (`src/lib/ai/analyze.ts`): top 100 posts + last-14-days idea list (dedup guard) → Claude → strict JSON array of 10. Output is validated field-by-field, `viral_potential` clamped to 1–5, `source_urls` coerced to array. Throws on malformed output (no silent bad data).
 
@@ -111,6 +117,7 @@ runScan():
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (read path) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Admin writes + dedup query (pipeline) |
 | `ANTHROPIC_API_KEY` | Claude (read by the SDK automatically) |
+| `PRODUCTHUNT_TOKEN` | *(optional)* Product Hunt GraphQL API token — without it the PH source returns 0 |
 | `CRON_SECRET` | Bearer token guarding `/api/scan` |
 | *(none for newsletter)* | The Substack URL lives in `src/lib/substack.ts` — no env var or API route needed |
 
