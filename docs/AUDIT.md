@@ -41,11 +41,15 @@ The pipeline advertised "Reddit + Hacker News + Product Hunt" but live-testing t
 
 | Source | Status | Notes |
 |---|---|---|
-| **Hacker News** | ✅ working | HN Algolia API, ~8k+ hits available |
-| **Reddit** | ❌ 403 blocked | `.json` endpoint refuses datacenter IPs; was failing **silently**. Needs OAuth API (`REDDIT_CLIENT_ID/SECRET`) — not yet done. |
-| **Product Hunt** | ⚠️ now built | Was a stub returning `[]`. Implemented via GraphQL — **requires `PRODUCTHUNT_TOKEN`** to actually return data. |
+| **Hacker News** | ✅ live | HN Algolia API |
+| **Stack Overflow** | ✅ live | Stack Exchange API — recent unanswered, upvoted Qs = unmet dev needs |
+| **GitHub** | ✅ live | Search API — enhancement / "would be great if" issues by reactions |
+| **App Store** | ✅ live | Apple review RSS, 1–2★ complaints across ~7 popular apps |
+| **Reddit** | ❌ 403 blocked | `.json` refuses datacenter IPs; was failing **silently**. Needs OAuth (`REDDIT_CLIENT_ID/SECRET`). |
+| **Product Hunt** | ⚠️ built, needs token | GraphQL scraper built; **requires `PRODUCTHUNT_TOKEN`**. |
+| **Indie Hackers** | ❌ dropped | No usable public API/RSS (SPA shell only). |
 
-**Done this cycle:** Product Hunt GraphQL scraper implemented; per-source **failure logging** added (`scrapeAll` logs a breakdown + names DEAD sources; scan response includes `source_breakdown`). **Still open:** Reddit OAuth (so Reddit stops being dead), and setting `PRODUCTHUNT_TOKEN`. Until both, ideas are HN-only — and site copy still claims all three sources.
+**Done this cycle:** built Product Hunt (GraphQL) + Stack Overflow + GitHub + App Store scrapers; per-source **failure logging** (`scrapeAll` logs a breakdown + names DEAD sources; scan response includes `source_breakdown`). **Now 4 sources live** (was 1). **Still open:** Reddit OAuth, and setting `PRODUCTHUNT_TOKEN`. Note: site/email copy still says "Reddit, HN, Product Hunt" — should be updated to match the real source set.
 
 ## 🟠 Trust & data integrity (the live dashboard is partly fake)
 

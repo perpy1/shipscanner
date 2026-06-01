@@ -100,10 +100,15 @@ runScan():
 **Scrapers** (`src/lib/scrapers/`): run in parallel via `Promise.allSettled`, so one source failing doesn't kill the run. `scrapeAll` returns a per-source `breakdown` and logs a summary that names any DEAD source (0 posts). Results deduped by URL, sorted by score.
 
 - **Hacker News** (`hackernews.ts`) — ✅ working. HN Algolia API; queries "Ask HN", "Show HN", "looking for", "wish there was".
-- **Reddit** (`reddit.ts`) — ⚠️ **blocked**. Pulls `hot.json` from r/SaaS, SideProject, Entrepreneur, startups, programming, webdev, filtered by pain keywords ("frustrated", "would pay for", …). Reddit 403s the unauthenticated `.json` endpoint from datacenter IPs; currently returns 0. **Needs the official OAuth API to work** (not yet implemented).
-- **Product Hunt** (`producthunt.ts`) — official GraphQL API (top recent launches by votes). **Requires `PRODUCTHUNT_TOKEN`**; returns 0 and logs a skip if unset.
+- **Stack Overflow** (`stackoverflow.ts`) — ✅ working. Stack Exchange API (free; `STACKEXCHANGE_KEY` optional for higher quota). Recent (90d), upvoted, **unanswered** questions = current unmet dev-tooling needs.
+- **GitHub** (`github.ts`) — ✅ working. Search API for open enhancement / "would be great if" / "is there a way to" issues, ranked by reactions. `GITHUB_TOKEN` optional (raises rate limit from 10→30 req/min).
+- **App Store** (`appstore.ts`) — ✅ working. Apple review RSS for ~7 popular apps; keeps only **1–2★** reviews (missing-feature complaints). Synthetic score so complaints survive the top-100 cut.
+- **Reddit** (`reddit.ts`) — ⚠️ **blocked**. `hot.json` 403s from datacenter IPs → 0 posts. **Needs the official OAuth API** (not yet implemented).
+- **Product Hunt** (`producthunt.ts`) — built (GraphQL). **Requires `PRODUCTHUNT_TOKEN`**; returns 0 and logs a skip if unset.
 
-> Net: until Reddit OAuth is added and `PRODUCTHUNT_TOKEN` is set, the pipeline is **HN-only**. The summary log + `source_breakdown` in the scan response make this visible.
+> Net: **4 sources live** (HN, Stack Overflow, GitHub, App Store) + 2 pending (Reddit OAuth, PH token). The summary log + `source_breakdown` in the scan response make any dead source visible.
+>
+> **Indie Hackers** was evaluated and dropped — it's a client-rendered SPA with no usable public API/RSS (every endpoint returns the HTML shell).
 
 **AI** (`src/lib/ai/analyze.ts`): top 100 posts + last-14-days idea list (dedup guard) → Claude → strict JSON array of 10. Output is validated field-by-field, `viral_potential` clamped to 1–5, `source_urls` coerced to array. Throws on malformed output (no silent bad data).
 
@@ -118,6 +123,8 @@ runScan():
 | `SUPABASE_SERVICE_ROLE_KEY` | Admin writes + dedup query (pipeline) |
 | `ANTHROPIC_API_KEY` | Claude (read by the SDK automatically) |
 | `PRODUCTHUNT_TOKEN` | *(optional)* Product Hunt GraphQL API token — without it the PH source returns 0 |
+| `GITHUB_TOKEN` | *(optional)* raises the GitHub search rate limit (10→30 req/min) |
+| `STACKEXCHANGE_KEY` | *(optional)* raises the Stack Exchange API daily quota (300→10k) |
 | `CRON_SECRET` | Bearer token guarding `/api/scan` |
 | *(none for newsletter)* | The Substack URL lives in `src/lib/substack.ts` — no env var or API route needed |
 

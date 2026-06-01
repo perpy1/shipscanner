@@ -14,10 +14,14 @@ Runs twice a day via Vercel Cron (`vercel.json`): **13:00 UTC** and **23:00 UTC*
 └──────┬──────┘
        ▼
 ┌──────────────────────────────────────────────┐
-│ 1. SCRAPE   src/lib/scrapers/                 │
-│    • Hacker News  ✅ working (Algolia API)    │
-│    • Reddit       ⚠️ 403-blocked → 0 posts    │
-│      (needs OAuth; r/SaaS, SideProject, …)    │
+│ 1. SCRAPE   src/lib/scrapers/   (6 sources)   │
+│    LIVE:                                       │
+│    • Hacker News   (Algolia API)              │
+│    • Stack Overflow (recent unanswered Qs)    │
+│    • GitHub        (enhancement issues)       │
+│    • App Store     (1–2★ review complaints)   │
+│    PENDING:                                    │
+│    • Reddit        ⚠️ 403 → 0 (needs OAuth)   │
 │    • Product Hunt  needs PRODUCTHUNT_TOKEN     │
 │    → dedupe by URL, sort by score             │
 │    → logs per-source breakdown (names DEAD)   │
