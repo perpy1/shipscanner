@@ -2,6 +2,9 @@ import { ScrapedPost } from "@/types";
 import { scrapeReddit } from "./reddit";
 import { scrapeHackerNews } from "./hackernews";
 import { scrapeProductHunt } from "./producthunt";
+import { scrapeStackOverflow } from "./stackoverflow";
+import { scrapeGitHub } from "./github";
+import { scrapeAppStore } from "./appstore";
 
 export interface ScrapeResult {
   posts: ScrapedPost[];
@@ -15,6 +18,9 @@ export async function scrapeAll(): Promise<ScrapeResult> {
     { name: "reddit", fn: scrapeReddit },
     { name: "hackernews", fn: scrapeHackerNews },
     { name: "producthunt", fn: scrapeProductHunt },
+    { name: "stackoverflow", fn: scrapeStackOverflow },
+    { name: "github", fn: scrapeGitHub },
+    { name: "appstore", fn: scrapeAppStore },
   ];
 
   const results = await Promise.allSettled(sources.map((s) => s.fn()));

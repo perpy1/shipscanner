@@ -12,6 +12,14 @@ export type Category =
 
 export type Difficulty = "Weekend" | "Week" | "Month";
 
+export type Platform =
+  | "reddit"
+  | "hackernews"
+  | "producthunt"
+  | "stackoverflow"
+  | "github"
+  | "appstore";
+
 export interface Idea {
   id: string;
   name: string;
@@ -24,7 +32,7 @@ export interface Idea {
   target_audience: string;
   monetization: string;
   source_urls: string[];
-  source_platform: "reddit" | "hackernews" | "producthunt";
+  source_platform: Platform;
   upvotes: number;
   created_at: string;
   scan_date: string;
@@ -61,7 +69,7 @@ export interface ScrapedPost {
   body: string;
   score: number;
   comments: number;
-  platform: "reddit" | "hackernews" | "producthunt";
+  platform: Platform;
   subreddit?: string;
   created_at: string;
 }

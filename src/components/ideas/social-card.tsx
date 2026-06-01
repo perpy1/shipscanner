@@ -44,7 +44,15 @@ export function SocialCard({ idea, open, onClose }: { idea: Idea; open: boolean;
 
   if (!open) return null;
 
-  const platform = idea.source_platform === "reddit" ? "Reddit" : idea.source_platform === "hackernews" ? "Hacker News" : "Product Hunt";
+  const platformLabel: Record<string, string> = {
+    reddit: "Reddit",
+    hackernews: "Hacker News",
+    producthunt: "Product Hunt",
+    stackoverflow: "Stack Overflow",
+    github: "GitHub",
+    appstore: "the App Store",
+  };
+  const platform = platformLabel[idea.source_platform] ?? idea.source_platform;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={`Share ${idea.name}`}>
