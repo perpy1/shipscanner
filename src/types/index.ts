@@ -17,6 +17,9 @@ export type Platform =
   | "hackernews"
   | "producthunt"
   | "stackoverflow"
+  | "softwarerecs"
+  | "webapps"
+  | "lobsters"
   | "github"
   | "appstore";
 

@@ -21,7 +21,7 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "SideQuest — 10 buildable app ideas, every morning",
   description:
-    "We scan Reddit, HN, and Product Hunt overnight and distill 10 actionable app ideas every morning. No noise. Just signal.",
+    "We scan Hacker News, Stack Exchange, GitHub and the App Store overnight and distill 10 actionable app ideas every morning. No noise. Just signal.",
   openGraph: {
     title: "SideQuest — 10 buildable app ideas, every morning",
     description:

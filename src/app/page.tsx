@@ -140,7 +140,7 @@ export default async function Home() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-9 mt-7">
           {[
-            { n: "01", t: "Scan the noise", d: "Every night we crawl Reddit, Hacker News and Product Hunt for what people are actually complaining about." },
+            { n: "01", t: "Scan the noise", d: "Every night we crawl Hacker News, Stack Exchange, GitHub and app store reviews for what people are actually complaining about." },
             { n: "02", t: "Distill the signal", d: "AI clusters the gripes, sets aside the noise, and shapes the ten most buildable into real product ideas." },
             { n: "03", t: "Pick and ship", d: "Open any idea for the pain point, audience and pricing — then copy a build prompt straight into your editor." },
           ].map((step) => (

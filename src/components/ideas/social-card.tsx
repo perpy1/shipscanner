@@ -49,6 +49,9 @@ export function SocialCard({ idea, open, onClose }: { idea: Idea; open: boolean;
     hackernews: "Hacker News",
     producthunt: "Product Hunt",
     stackoverflow: "Stack Overflow",
+    softwarerecs: "Software Recs",
+    webapps: "Web Apps SE",
+    lobsters: "Lobsters",
     github: "GitHub",
     appstore: "the App Store",
   };

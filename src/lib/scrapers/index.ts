@@ -2,7 +2,8 @@ import { ScrapedPost } from "@/types";
 import { scrapeReddit } from "./reddit";
 import { scrapeHackerNews } from "./hackernews";
 import { scrapeProductHunt } from "./producthunt";
-import { scrapeStackOverflow } from "./stackoverflow";
+import { scrapeStackExchange } from "./stackexchange";
+import { scrapeLobsters } from "./lobsters";
 import { scrapeGitHub } from "./github";
 import { scrapeAppStore } from "./appstore";
 
@@ -18,7 +19,8 @@ export async function scrapeAll(): Promise<ScrapeResult> {
     { name: "reddit", fn: scrapeReddit },
     { name: "hackernews", fn: scrapeHackerNews },
     { name: "producthunt", fn: scrapeProductHunt },
-    { name: "stackoverflow", fn: scrapeStackOverflow },
+    { name: "stackexchange", fn: scrapeStackExchange },
+    { name: "lobsters", fn: scrapeLobsters },
     { name: "github", fn: scrapeGitHub },
     { name: "appstore", fn: scrapeAppStore },
   ];
@@ -49,8 +51,24 @@ export async function scrapeAll(): Promise<ScrapeResult> {
     return true;
   });
 
-  // Sort by score descending
-  deduped.sort((a, b) => b.score - a.score);
+  // Interleave by source instead of a global score sort. Sources use wildly
+  // different score scales (HN points in the hundreds vs. SoftwareRecs votes of
+  // 1–2), so a global sort lets a couple sources crowd the rest out of the
+  // downstream top-N cut. Round-robin across per-source score-sorted queues so
+  // every live source is represented near the top.
+  const byPlatform = new Map<string, ScrapedPost[]>();
+  for (const post of deduped) {
+    const list = byPlatform.get(post.platform) ?? [];
+    list.push(post);
+    byPlatform.set(post.platform, list);
+  }
+  for (const list of byPlatform.values()) list.sort((a, b) => b.score - a.score);
+
+  const queues = [...byPlatform.values()];
+  const interleaved: ScrapedPost[] = [];
+  for (let i = 0; interleaved.length < deduped.length; i++) {
+    for (const q of queues) if (i < q.length) interleaved.push(q[i]);
+  }
 
   // Make dead sources loud — a 0 here means that source is broken, not quiet.
   const dead = Object.entries(breakdown).filter(([, n]) => n === 0).map(([name]) => name);
@@ -59,5 +77,5 @@ export async function scrapeAll(): Promise<ScrapeResult> {
       (dead.length ? ` · DEAD: ${dead.join(", ")}` : "")
   );
 
-  return { posts: deduped, sourcesScraped, breakdown };
+  return { posts: interleaved, sourcesScraped, breakdown };
 }
